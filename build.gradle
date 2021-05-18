@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.openjfx.javafxplugin' version '0.0.9'
+}
+
+javafx {
+    version = "15.0.1"
+    modules = [ 'javafx.controls' ]
+}
+
+javafx {
+    version = "15.0.1"
+    modules = [ 'javafx.fxml' ]
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+        }
+    }
+}
+dependencies {
+    compile 'junit:junit:4.12'
+    implementation group: 'org.openjfx', name: 'javafx', version: '17-ea+9', ext: 'pom'
+}
