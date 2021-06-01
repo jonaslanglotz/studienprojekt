@@ -1,7 +1,6 @@
 package main.java.model.world;
 
 import lombok.Getter;
-import lombok.NonNull;
 import lombok.Setter;
 import main.java.model.WorldModel;
 
@@ -21,7 +20,6 @@ public abstract class DynamicEntity extends Entity implements Runnable {
     /**
      * The amount of milliseconds between each execution of the update loop.
      */
-    @NonNull
     @Getter
     @Setter
     protected int updateInterval;
@@ -31,7 +29,7 @@ public abstract class DynamicEntity extends Entity implements Runnable {
      * @param position       The world this entity exists in.
      * @param updateInterval The amount of milliseconds between each execution of the update loop.
      */
-    public DynamicEntity(WorldModel world, Vector2f position, @NonNull int updateInterval) {
+    public DynamicEntity(WorldModel world, Vector2f position, int updateInterval) {
         super(world, position);
         this.updateInterval = updateInterval;
         this.run();

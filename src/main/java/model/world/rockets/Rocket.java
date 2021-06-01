@@ -30,8 +30,8 @@ public class Rocket extends DynamicEntity {
      * @param velocity       The vector representation of the rockets movement.
      * @param steerRate      The maximum angle a rocket can turn per second.
      */
-    public Rocket(WorldModel world, Vector2f position, int updateInterval, @NonNull float errorRate,
-                  @NonNull Vector2f targetPosition, @NonNull Vector2f velocity, @NonNull float steerRate) {
+    public Rocket(WorldModel world, Vector2f position, int updateInterval, float errorRate,
+                  @NonNull Vector2f targetPosition, @NonNull Vector2f velocity, float steerRate) {
         super(world, position, updateInterval);
         this.startPosition = position;
 
@@ -41,13 +41,13 @@ public class Rocket extends DynamicEntity {
         this.steerRate = steerRate;
     }
 
-    public void setErrorRate(@NonNull float errorRate) {
+    public void setErrorRate(float errorRate) {
         final float oldValue = this.errorRate;
         this.errorRate = errorRate;
         changes.firePropertyChange("errorRate", oldValue, errorRate);
     }
 
-    public void setSteerRate(@NonNull float steerRate) {
+    public void setSteerRate(float steerRate) {
         final float oldValue = this.steerRate;
         this.steerRate = steerRate;
         changes.firePropertyChange("steerRate", oldValue, steerRate);
