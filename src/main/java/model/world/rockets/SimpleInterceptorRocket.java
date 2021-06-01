@@ -1,11 +1,17 @@
 package main.java.model.world.rockets;
 
+import lombok.Getter;
+import lombok.NonNull;
+import lombok.Setter;
 import main.java.model.WorldModel;
 
 import javax.vecmath.Vector2f;
 
 public class SimpleInterceptorRocket extends Rocket {
 
+    @NonNull
+    @Getter
+    @Setter
     private Rocket targetRocket;
 
     /**
@@ -13,12 +19,11 @@ public class SimpleInterceptorRocket extends Rocket {
      * @param position       The position in the world the entity is spawned at
      * @param updateInterval
      * @param errorRate
-     * @param startPosition
      * @param velocity
      * @param steerRate
      */
-    public SimpleInterceptorRocket(WorldModel world, Vector2f position, int updateInterval, float errorRate, Vector2f startPosition, Vector2f velocity, float steerRate, Rocket targetRocket) {
-        super(world, position, updateInterval, errorRate, targetRocket.getPosition(), startPosition, velocity, steerRate);
+    public SimpleInterceptorRocket(WorldModel world, Vector2f position, int updateInterval, float errorRate, Vector2f velocity, float steerRate, @NonNull Rocket targetRocket) {
+        super(world, position, updateInterval, errorRate, targetRocket.getPosition(), velocity, steerRate);
         this.targetRocket = targetRocket;
     }
 

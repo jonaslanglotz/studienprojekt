@@ -13,12 +13,11 @@ public class AdvancedInterceptorRocket extends Rocket {
      * @param position       The position in the world the entity is spawned at
      * @param updateInterval
      * @param errorRate
-     * @param startPosition
      * @param velocity
      * @param steerRate
      */
-    public AdvancedInterceptorRocket(WorldModel world, Vector2f position, int updateInterval, float errorRate, Vector2f startPosition, Vector2f velocity, float steerRate, Rocket targetRocket) {
-        super(world, position, updateInterval, errorRate, targetRocket.getPosition(), startPosition, velocity, steerRate);
+    public AdvancedInterceptorRocket(WorldModel world, Vector2f position, int updateInterval, float errorRate, Vector2f velocity, float steerRate, Rocket targetRocket) {
+        super(world, position, updateInterval, errorRate, targetRocket.getPosition(), velocity, steerRate);
         this.targetRocket = targetRocket;
     }
 

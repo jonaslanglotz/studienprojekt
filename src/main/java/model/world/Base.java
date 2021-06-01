@@ -7,8 +7,8 @@ import javax.vecmath.Vector2f;
 public class Base extends Entity {
 
     /**
-     * @param world    The world this entity is spawned in
-     * @param position The position in the world the entity is spawned at
+     * @param world    Position of the entity in world coordinates.
+     * @param position The world this entity exists in.
      */
     public Base(WorldModel world, Vector2f position) {
         super(world, position);

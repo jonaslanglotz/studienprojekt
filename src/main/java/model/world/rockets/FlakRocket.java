@@ -11,12 +11,11 @@ public class FlakRocket extends Rocket {
      * @param position       The position in the world the entity is spawned at
      * @param updateInterval
      * @param targetPosition
-     * @param startPosition
      * @param velocity
      */
     public FlakRocket(WorldModel world, Vector2f position, int updateInterval,
-                      Vector2f targetPosition, Vector2f startPosition, Vector2f velocity) {
-        super(world, position, updateInterval, 0, targetPosition, startPosition, velocity, 0);
+                      Vector2f targetPosition, Vector2f velocity) {
+        super(world, position, updateInterval, 0, targetPosition, velocity, 0);
     }
 
     /**

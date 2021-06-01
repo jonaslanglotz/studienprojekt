@@ -28,6 +28,7 @@ sourceSets {
     }
 }
 dependencies {
+    implementation 'org.projectlombok:lombok:1.18.18'
     compile 'junit:junit:4.12'
     implementation group: 'org.openjfx', name: 'javafx', version: '17-ea+9', ext: 'pom'
     implementation group: 'javax.vecmath', name: 'vecmath', version: '1.5.2'
