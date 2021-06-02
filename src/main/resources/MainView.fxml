@@ -1,4 +1,12 @@
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.StackPane?>
+<?import main.java.view.main.MapView?>
 <GridPane fx:controller="main.java.view.main.MainViewController"
-          xmlns:fx="http://javafx.com/fxml" alignment="center" hgap="10" vgap="10">
+          xmlns:fx="http://javafx.com/fxml" alignment="center" hgap="10" vgap="10" prefHeight="700" prefWidth="1500"
+          stylesheets="@../main/MainView.css">
+    <StackPane fx:id="stackPane" prefWidth="700" prefHeight="700">
+        <MapView fx:id="mainCanvas" width="700" height="700"/>
+    </StackPane>
+    <Button mnemonicParsing="false" fx:id="spawnButton" onAction="#onSpawnButton"/>
 </GridPane>

@@ -19,19 +19,20 @@ public class ViewHandler {
     }
 
     public void start() throws IOException {
-        Scene scene = null;
+        Scene scene;
+        Parent root;
         FXMLLoader loader = new FXMLLoader();
-        Parent root = null;
 
         loader.setLocation(getClass().getResource("/MainView.fxml"));
         root = loader.load();
 
         MainViewController view = loader.getController();
-        view.init();
+        view.init(viewModelFactory.getMainViewModel());
         stage.setTitle("MainView");
 
         scene = new Scene(root);
         stage.setScene(scene);
         stage.show();
+
     }
 }
