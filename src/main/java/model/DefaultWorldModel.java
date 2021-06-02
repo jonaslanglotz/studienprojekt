@@ -100,7 +100,7 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
     private void updateCurrentTime() {
         long nowMs = new Date().getTime();
         long msSinceLastUpdate = nowMs - lastUpdateMs;
-        float passedInternalTime = msSinceLastUpdate * simulationSpeed;
+        float passedInternalTime = (float) msSinceLastUpdate * simulationSpeed / 1000;
 
         lastUpdateInternalTime += passedInternalTime;
         lastUpdateMs = nowMs;
