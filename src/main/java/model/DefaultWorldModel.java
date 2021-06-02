@@ -146,6 +146,6 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
      */
     @Override
     public void propertyChange(PropertyChangeEvent evt) {
-        changes.firePropertyChange("entities", this.getEntities(), this.getEntities());
+        changes.firePropertyChange("entities", null, this.getEntities());
     }
 }
