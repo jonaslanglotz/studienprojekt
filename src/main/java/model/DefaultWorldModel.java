@@ -14,6 +14,11 @@ import java.util.List;
 public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
 
     /**
+     * Counts up as new entities are created.
+     */
+    private int idCounter;
+
+    /**
      * The width of the world.
      */
     @Getter
@@ -83,14 +88,10 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
      */
     @Override
     public void destroy(@NonNull Entity entity) {
-        final List<Entity> oldValue = this.getEntities();
-
-        Entity entityToBeDestroyed = entities.stream().filter(object -> object == entity).findFirst().get();
-
-        entityToBeDestroyed.destruct();
-        entities.remove(entityToBeDestroyed);
-
-        changes.firePropertyChange("entities", oldValue, this.getEntities());
+        entity.destruct();
+        if (entities.remove(entity)) {
+            changes.firePropertyChange("entities", null, this.getEntities());
+        }
     }
 
 
@@ -136,6 +137,22 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
     @Override
     public void removePropertyChangeListener(PropertyChangeListener l) {
         changes.removePropertyChangeListener(l);
+    }
+
+    @Override
+    public int getNewId() {
+        idCounter++;
+        return idCounter - 1;
+    }
+
+    @Override
+    public Entity getEntityById(int id) {
+        return entities.stream().filter(entity -> entity.getId() == id).findFirst().orElse(null);
+    }
+
+    @Override
+    public <T> List<T> getEntitiesByType(Class<T> clazz) {
+        return entities.stream().filter(clazz::isInstance).map(entity -> (T) entity).collect(Collectors.toList());
     }
 
     /**

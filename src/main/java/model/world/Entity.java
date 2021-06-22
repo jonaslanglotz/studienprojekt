@@ -2,6 +2,7 @@ package main.java.model.world;
 
 import lombok.Getter;
 import lombok.NonNull;
+import lombok.Setter;
 import main.java.model.WorldModel;
 
 import javax.vecmath.Vector2f;
@@ -18,9 +19,21 @@ public class Entity {
      */
     @Getter
     public final float creationTime;
+
+    /**
+     * The id of this entity.
+     */
+    @Getter
+    protected int id;
+
+    @Getter
+    @Setter
+    protected boolean isDestroyed = false;
+
     /**
      * The world this entity exists in.
      */
+    @Getter
     protected WorldModel world;
     /**
      * Position of the entity in world coordinates.
@@ -38,14 +51,19 @@ public class Entity {
         this.position = position;
 
         this.creationTime = this.world.getCurrentTime();
+        this.id = world.getNewId();
     }
 
     /**
      * Prepares this object for deletion by removing references to other objects.
      */
     public void destruct() {
+        if (isDestroyed) {
+            return;
+        }
+        isDestroyed = true;
         Arrays.stream(changes.getPropertyChangeListeners())
-                .forEach(propertyChangeListener -> changes.removePropertyChangeListener(propertyChangeListener));
+                .forEach(changes::removePropertyChangeListener);
         world = null;
         position = null;
     }

@@ -47,11 +47,13 @@ public abstract class DynamicEntity extends Entity implements Runnable {
 
     @Override
     public void run() {
-        timer.scheduleAtFixedRate(
+        timer.schedule(
                 new TimerTask() {
                     @Override
                     public void run() {
-                        update();
+                        if (!isDestroyed) {
+                            update();
+                        }
                     }
                 },
                 0,

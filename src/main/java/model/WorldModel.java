@@ -57,4 +57,9 @@ public interface WorldModel {
 
     void removePropertyChangeListener(PropertyChangeListener l);
 
+    int getNewId();
+
+    Entity getEntityById(int id);
+
+    <T> List<T> getEntitiesByType(Class<T> clazz);
 }
