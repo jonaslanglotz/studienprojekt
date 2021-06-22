@@ -1,8 +1,7 @@
 .root {
-    -fx-background-color: black;
+    -fx-background-color: lightgray;
 }
 
 #stackPane {
-    -fx-background-image: url("unknown.png");
-    -fx-background-size: cover;
+    -fx-background-color: rgb(50, 50, 50);
 }
