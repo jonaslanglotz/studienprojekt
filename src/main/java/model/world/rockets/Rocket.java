@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import main.java.model.WorldModel;
 import main.java.model.world.DynamicEntity;
+import main.java.model.world.SimplexNoise;
 
 import javax.vecmath.Vector2f;
 
@@ -125,7 +126,9 @@ public class Rocket extends DynamicEntity {
         }
 
         // Apply random offset to turning angle
-        turnAngle += (Math.random() - 0.5f) * 2 * errorStrength * deltaTime;
+        final float noiseScale = 0.1f;
+
+        turnAngle += (SimplexNoise.noise(position.x * noiseScale, position.y * noiseScale)) * 1 * errorStrength * deltaTime;
 
         // Rotate the velocity vector by turnAngle
         newVelocity = new Vector2f(
