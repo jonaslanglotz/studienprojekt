@@ -8,8 +8,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
 
@@ -42,9 +42,9 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
     private float simulationSpeed;
 
     /**
-     * The millisecond epoch timestamp of the last time update.
+     * The nanosecond timestamp of the last time update.
      */
-    private long lastUpdateMs;
+    private long lastUpdateNs;
 
     /**
      * The internal float timestamp of the last time update.
@@ -58,7 +58,7 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
         this.height = height;
         this.simulationSpeed = simulationSpeed;
 
-        this.lastUpdateMs = new Date().getTime();
+        this.lastUpdateNs = System.nanoTime();
         this.lastUpdateInternalTime = 0;
     }
 
@@ -99,12 +99,12 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
      * Calculate and set the current time, based on simulation speed and how many milliseconds have passed since the last update
      */
     private void updateCurrentTime() {
-        long nowMs = new Date().getTime();
-        long msSinceLastUpdate = nowMs - lastUpdateMs;
-        float passedInternalTime = (float) msSinceLastUpdate * simulationSpeed / 1000;
+        long nowNs = System.nanoTime();
+        long nsSinceLastUpdate = nowNs - lastUpdateNs;
+        float passedInternalTime = nsSinceLastUpdate * simulationSpeed / 1000000000f;
 
         lastUpdateInternalTime += passedInternalTime;
-        lastUpdateMs = nowMs;
+        lastUpdateNs = nowNs;
     }
 
     /**
