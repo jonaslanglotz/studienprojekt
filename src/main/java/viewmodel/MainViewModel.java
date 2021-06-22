@@ -16,6 +16,8 @@ import javax.vecmath.Vector2f;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.stream.Collectors;
 
 public class MainViewModel {
@@ -99,18 +101,44 @@ public class MainViewModel {
         this.worldModel.addPropertyChangeListener(evt -> Platform.runLater(() -> updateValues(evt)));
     }
 
+    int updatesPerSecond = 30;
     long lastEntityUpdate = 0;
+    Timer updateTimer = new Timer(true);
+    boolean isTimerSet = false;
 
     public void updateValues(PropertyChangeEvent evt) {
         switch (evt.getPropertyName()) {
             case "entities":
+                long now = System.nanoTime();
+                long timeSinceLastUpdate = now - lastEntityUpdate;
+
+                if (timeSinceLastUpdate < 1000000000f / updatesPerSecond) {
+                    if (!isTimerSet) {
+                        isTimerSet = true;
+                        updateTimer.schedule(new TimerTask() {
+                            @Override
+                            public void run() {
+                                Platform.runLater(() -> {
+                                    entities.setAll(worldModel.getEntities());
+                                    lastEntityUpdate = System.nanoTime();
+                                    isTimerSet = false;
+                                });
+                            }
+                        }, (long) ((1000f / updatesPerSecond) - timeSinceLastUpdate / 1000000f));
+                    }
+                    return;
+                }
+
                 entities.setAll((List<Entity>) evt.getNewValue());
+                lastEntityUpdate = System.nanoTime();
+
                 break;
 
             default:
                 break;
         }
     }
+
 
     private ArrayList<String> getBaseNames(ArrayList<Base> bases) {
         return (ArrayList<String>) bases.stream().map(Base::getName).collect(Collectors.toList());

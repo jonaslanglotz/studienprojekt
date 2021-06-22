@@ -232,14 +232,7 @@ public class MapView extends Canvas {
     }
 
     private void render(boolean isEntityUpdate) {
-        int updatesPerSecond = 60;
-
         long start = System.nanoTime();
-        long timeSinceLastUpdate = lastUpdate != null ? start - lastUpdate.getStart() : 0;
-
-        if (isEntityUpdate && timeSinceLastUpdate < 1000000000f / updatesPerSecond) {
-            return;
-        }
 
         GraphicsContext gc = this.getGraphicsContext2D();
         gc.clearRect(0, 0, getWidth(), getHeight());
