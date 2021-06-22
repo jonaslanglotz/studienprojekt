@@ -147,14 +147,16 @@ public class Rocket extends DynamicEntity {
         // Save new position
         setPosition(newPosition);
 
-        // TODO make explode
+        if (shouldExplode() && !isDestroyed) {
+            world.destroy(this);
+        }
     }
 
     /**
      * @return true if the rocket has reached the target position or after it has missed. False if it has not yet done so.
      */
     protected boolean shouldExplode() {
-        // TODO Add logic
-        return false;
+        Vector2f difference = new Vector2f(targetPosition.x - position.x, targetPosition.y - position.y);
+        return difference.length() < 10;
     }
 }
