@@ -41,6 +41,27 @@ public class Rocket extends DynamicEntity {
         this.lastUpdateTime = world.getCurrentTime();
     }
 
+    /**
+     * @param world          The world this entity is spawned in
+     * @param position       The position in the world the entity is spawned at
+     * @param updateInterval The amount of milliseconds between each execution of the update loop.
+     * @param errorStrength  The amount the actual steering angle may differ from the planned steering angle.
+     * @param targetPosition The position of the target the rocket is trying to hit.
+     * @param speed          The speed the rocket should fly at
+     * @param steerRate      The maximum angle a rocket can turn per second.
+     */
+    public Rocket(WorldModel world, Vector2f position, int updateInterval, float errorStrength,
+                  @NonNull Vector2f targetPosition, float speed, float steerRate) {
+        this(world, position, updateInterval, errorStrength, targetPosition, calculateVelocity(position, targetPosition, speed), steerRate);
+    }
+
+    static private Vector2f calculateVelocity(Vector2f position, Vector2f targetPosition, float speed) {
+        Vector2f deltaPosition = new Vector2f(targetPosition.x - position.x, targetPosition.y - position.y);
+        deltaPosition.normalize();
+        deltaPosition.scale(speed);
+        return deltaPosition;
+    }
+
     public void setErrorStrength(float errorStrength) {
         final float oldValue = this.errorStrength;
         this.errorStrength = errorStrength;
