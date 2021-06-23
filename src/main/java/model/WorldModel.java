@@ -2,6 +2,7 @@ package main.java.model;
 
 import main.java.model.world.Entity;
 
+import javax.vecmath.Vector2f;
 import java.beans.PropertyChangeListener;
 import java.util.List;
 
@@ -60,6 +61,8 @@ public interface WorldModel {
     int getNewId();
 
     Entity getEntityById(int id);
+
+    public List<Entity> getEntitiesByPosition(Vector2f position, float radius);
 
     <T> List<T> getEntitiesByType(Class<T> clazz);
 }

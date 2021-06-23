@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.NonNull;
 import main.java.model.WorldModel;
 import main.java.model.world.DynamicEntity;
+import main.java.model.world.Side;
 import main.java.model.world.SimplexNoise;
 
 import javax.vecmath.Vector2f;
@@ -19,7 +20,7 @@ public class Rocket extends DynamicEntity {
     @Getter
     protected float steerRate;
 
-    private float lastUpdateTime;
+    protected float lastUpdateTime;
 
     /**
      * @param world          The world this entity is spawned in
@@ -30,9 +31,9 @@ public class Rocket extends DynamicEntity {
      * @param velocity       The vector representation of the rockets movement.
      * @param steerRate      The maximum angle a rocket can turn per second.
      */
-    public Rocket(WorldModel world, Vector2f position, int updateInterval, float errorStrength,
+    public Rocket(WorldModel world, Vector2f position, Side side, int updateInterval, float errorStrength,
                   @NonNull Vector2f targetPosition, @NonNull Vector2f velocity, float steerRate) {
-        super(world, position, updateInterval);
+        super(world, position, side, updateInterval);
         this.startPosition = position;
 
         this.errorStrength = errorStrength;
@@ -51,9 +52,9 @@ public class Rocket extends DynamicEntity {
      * @param speed          The speed the rocket should fly at
      * @param steerRate      The maximum angle a rocket can turn per second.
      */
-    public Rocket(WorldModel world, Vector2f position, int updateInterval, float errorStrength,
+    public Rocket(WorldModel world, Vector2f position, Side side, int updateInterval, float errorStrength,
                   @NonNull Vector2f targetPosition, float speed, float steerRate) {
-        this(world, position, updateInterval, errorStrength, targetPosition, calculateVelocity(position, targetPosition, speed), steerRate);
+        this(world, position, side, updateInterval, errorStrength, targetPosition, calculateVelocity(position, targetPosition, speed), steerRate);
     }
 
     static private Vector2f calculateVelocity(Vector2f position, Vector2f targetPosition, float speed) {
@@ -136,7 +137,7 @@ public class Rocket extends DynamicEntity {
                 (float) (Math.sin(turnAngle) * newVelocity.x + Math.cos(turnAngle) * newVelocity.y));
 
         // Save new Velocity
-        setVelocity(newVelocity);
+        velocity = newVelocity;
 
         newVelocity = new Vector2f(newVelocity);
 

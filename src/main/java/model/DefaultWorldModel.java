@@ -4,10 +4,12 @@ import lombok.Getter;
 import lombok.NonNull;
 import main.java.model.world.Entity;
 
+import javax.vecmath.Vector2f;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,7 +35,7 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
     /**
      * A list of all entities in the world.
      */
-    private final ArrayList<Entity> entities = new ArrayList<>();
+    private final List<Entity> entities = Collections.synchronizedList(new ArrayList<>());
 
     /**
      * The speed the simulation runs at. A value of 1.0 represents real-time.
@@ -67,7 +69,7 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
      */
     @Override
     public List<Entity> getEntities() {
-        return (ArrayList<Entity>) entities.clone();
+        return new ArrayList<>(entities);
     }
 
     /**
@@ -147,12 +149,41 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
 
     @Override
     public Entity getEntityById(int id) {
-        return entities.stream().filter(entity -> entity.getId() == id).findFirst().orElse(null);
+        return getEntities().stream().filter(entity -> entity.getId() == id).findFirst().orElse(null);
     }
 
     @Override
     public <T> List<T> getEntitiesByType(Class<T> clazz) {
-        return entities.stream().filter(clazz::isInstance).map(entity -> (T) entity).collect(Collectors.toList());
+        return getEntities().stream().filter(clazz::isInstance).map(entity -> (T) entity).collect(Collectors.toList());
+    }
+
+    public List<Entity> getEntitiesByPosition(Vector2f position, float radius) {
+        return getEntities().stream().filter(entity -> {
+            if (entity == null || entity.isDestroyed()) {
+                return false;
+            }
+            Vector2f difference = new Vector2f(entity.getPosition().x - position.x, entity.getPosition().y - position.y);
+            return difference.length() < radius;
+        }).sorted((o1, o2) -> {
+            if (o1.isDestroyed() && o2.isDestroyed()) {
+                return 0;
+            }
+
+            if (o1.isDestroyed()) {
+                return 1;
+            }
+
+            if (o2.isDestroyed()) {
+                return -1;
+            }
+            Vector2f difference1 = new Vector2f(o1.getPosition().x - position.x, o1.getPosition().y - position.y);
+            Vector2f difference2 = new Vector2f(o2.getPosition().x - position.x, o2.getPosition().y - position.y);
+
+            Float length1 = difference1.length();
+            Float length2 = difference2.length();
+
+            return length1.compareTo(length2);
+        }).collect(Collectors.toList());
     }
 
     /**

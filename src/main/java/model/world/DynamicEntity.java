@@ -29,8 +29,8 @@ public abstract class DynamicEntity extends Entity implements Runnable {
      * @param position       The world this entity exists in.
      * @param updateInterval The amount of milliseconds between each execution of the update loop.
      */
-    public DynamicEntity(WorldModel world, Vector2f position, int updateInterval) {
-        super(world, position);
+    public DynamicEntity(WorldModel world, Vector2f position, Side side, int updateInterval) {
+        super(world, position, side);
         this.updateInterval = updateInterval;
         this.run();
     }
@@ -47,10 +47,16 @@ public abstract class DynamicEntity extends Entity implements Runnable {
 
     @Override
     public void run() {
+        DynamicEntity outerThis = this;
         timer.schedule(
                 new TimerTask() {
                     @Override
                     public void run() {
+                        if (willBeDestroyed && !isDestroyed) {
+                            world.destroy(outerThis);
+                            return;
+                        }
+
                         if (!isDestroyed) {
                             update();
                         }

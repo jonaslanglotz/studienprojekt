@@ -12,7 +12,6 @@ import main.java.model.world.Entity;
 import main.java.model.world.Side;
 import main.java.model.world.rockets.Rocket;
 
-import javax.vecmath.Vector2f;
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +61,12 @@ public class MainViewModel {
     @Getter
     private StringProperty defenderStartSelection;
 
+    @Getter
+    private ObjectProperty<ObservableList<String>> defenderRocketTypeSelectables;
+
+    @Getter
+    private StringProperty defenderRocketTypeSelection;
+
 
     public MainViewModel(WorldModel worldModel) {
         this.worldModel = worldModel;
@@ -94,14 +99,19 @@ public class MainViewModel {
         defenderStartSelectables = new SimpleObjectProperty<>(
                 FXCollections.observableArrayList(getBaseNames(defenderBases)));
 
+        defenderRocketTypeSelectables = new SimpleObjectProperty<>(
+                FXCollections.observableArrayList("Flak", "SimpleInterceptor", "AdvancedInterceptor")
+        );
+
         attackerStartSelection = new SimpleStringProperty(attackerStartSelectables.getValue().get(0));
         attackerTargetSelection = new SimpleStringProperty(attackerTargetSelectables.getValue().get(0));
         defenderStartSelection = new SimpleStringProperty(defenderStartSelectables.getValue().get(0));
+        defenderRocketTypeSelection = new SimpleStringProperty(defenderRocketTypeSelectables.getValue().get(0));
 
-        this.worldModel.addPropertyChangeListener(evt -> Platform.runLater(() -> updateValues(evt)));
+        this.worldModel.addPropertyChangeListener(this::updateValues);
     }
 
-    int updatesPerSecond = 30;
+    int updatesPerSecond = 60;
     long lastEntityUpdate = 0;
     Timer updateTimer = new Timer(true);
     boolean isTimerSet = false;
@@ -129,7 +139,7 @@ public class MainViewModel {
                     return;
                 }
 
-                entities.setAll((List<Entity>) evt.getNewValue());
+                Platform.runLater(() -> entities.setAll((List<Entity>) evt.getNewValue()));
                 lastEntityUpdate = System.nanoTime();
 
                 break;
@@ -149,19 +159,14 @@ public class MainViewModel {
     }
 
     public void spawnAttackerRockets() {
-        for (int i = 0; i < attackerRocketAmount.intValue(); i++) {
-            Vector2f startPosition = getBaseFromName(attackerStartSelection.getValue()).getPosition();
-            Entity entity = new Rocket(
-                    worldModel,
-                    new Vector2f(startPosition.x + ((float) Math.random() - 0.5f) * 20f, startPosition.y + ((float) Math.random() - 0.5f) * 20f),
-                    20,
-                    attackerErrorStrength.floatValue(),
-                    getBaseFromName(attackerTargetSelection.getValue()).getPosition(),
-                    attackerSpeed.floatValue(),
-                    1
-            );
-            worldModel.spawn(entity);
-        }
+        getBaseFromName(attackerStartSelection.getValue()).spawnAttackingRockets(
+                20,
+                attackerErrorStrength.floatValue(),
+                getBaseFromName(attackerTargetSelection.getValue()),
+                attackerSpeed.floatValue(),
+                1,
+                attackerRocketAmount.intValue()
+        );
     }
 
     public Base getBaseFromName(String name) {
@@ -175,5 +180,56 @@ public class MainViewModel {
 
     public void zoomMap(double v) {
         zoom.set(Math.max(0.1, zoom.getValue() + zoom.getValue() * v));
+    }
+
+    public void spawnDefenderRockets() {
+        switch (defenderRocketTypeSelection.getValue()) {
+            case "Flak":
+                worldModel.getEntitiesByType(Rocket.class).stream()
+                        .filter(rocket -> rocket.getSide() == Side.ATTACKER)
+                        .forEach(rocket -> {
+                            getBaseFromName(defenderStartSelection.getValue())
+                                    .spawnDefendingFlakRocket(
+                                            20,
+                                            rocket,
+                                            100
+                                    );
+                        });
+
+                break;
+            case "SimpleInterceptor":
+                worldModel.getEntitiesByType(Rocket.class).stream()
+                        .filter(rocket -> rocket.getSide() == Side.ATTACKER)
+                        .forEach(rocket -> {
+                            getBaseFromName(defenderStartSelection.getValue())
+                                    .spawnDefendingSimpleInterceptorRocket(
+                                            20,
+                                            2,
+                                            rocket,
+                                            100,
+                                            1
+                                    );
+                        });
+
+                break;
+
+            case "AdvancedInterceptor":
+                worldModel.getEntitiesByType(Rocket.class).stream()
+                        .filter(rocket -> rocket.getSide() == Side.ATTACKER)
+                        .forEach(rocket -> {
+                            getBaseFromName(defenderStartSelection.getValue())
+                                    .spawnDefendingAdvancedInterceptorRocket(
+                                            20,
+                                            2,
+                                            rocket,
+                                            100,
+                                            1
+                                    );
+                        });
+
+                break;
+            default:
+                break;
+        }
     }
 }

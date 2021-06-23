@@ -129,15 +129,24 @@ public class MapView extends Canvas {
         ArrayList<Entity> entities = new ArrayList<>(this.entities.getValue());
 
         for (Entity entity : entities) {
-
             if (entity == null || entity.isDestroyed()) {
                 continue;
             }
 
             final Vector2f pos = worldToCanvasCoordinates(entity.getPosition());
 
+            switch (entity.getSide()) {
+                case ATTACKER -> {
+                    gc.setFill(attackerColor);
+                    gc.setStroke(attackerColor);
+                }
+                case DEFENDER -> {
+                    gc.setFill(defenderColor);
+                    gc.setStroke(defenderColor);
+                }
+            }
+
             if (entity instanceof Rocket) {
-                gc.setStroke(attackerColor);
                 gc.setLineWidth(worldToCanvasLength(1));
                 gc.save();
 
@@ -163,15 +172,14 @@ public class MapView extends Canvas {
 
             }
             if (entity instanceof Base) {
-                switch (((Base) entity).getSide()) {
-                    case ATTACKER -> gc.setFill(attackerColor);
-                    case DEFENDER -> gc.setFill(defenderColor);
-                }
                 float diameter = worldToCanvasLength(10);
                 gc.fillOval(pos.x - diameter / 2, pos.y - diameter / 2, diameter, diameter);
                 gc.setFont(Font.font("sans-serif", 15));
                 gc.setFill(Color.BLACK);
                 gc.fillText(((Base) entity).getName(), pos.x + diameter, pos.y);
+
+                float test = worldToCanvasLength(500);
+                gc.strokeOval(pos.x - test / 2, pos.y - test / 2, test, test);
             }
         }
 

@@ -26,9 +26,21 @@ public class Entity {
     @Getter
     protected int id;
 
+
+    /**
+     * The sie this entity belongs to.
+     */
+    @Getter
+    @Setter
+    protected Side side;
+
     @Getter
     @Setter
     protected boolean isDestroyed = false;
+
+    @Getter
+    @Setter
+    protected boolean willBeDestroyed = false;
 
     /**
      * The world this entity exists in.
@@ -46,12 +58,13 @@ public class Entity {
      * @param world    Position of the entity in world coordinates.
      * @param position The world this entity exists in.
      */
-    public Entity(@NonNull WorldModel world, @NonNull Vector2f position) {
+    public Entity(@NonNull WorldModel world, @NonNull Vector2f position, Side side) {
         this.world = world;
         this.position = position;
 
         this.creationTime = this.world.getCurrentTime();
         this.id = world.getNewId();
+        this.side = side;
     }
 
     /**

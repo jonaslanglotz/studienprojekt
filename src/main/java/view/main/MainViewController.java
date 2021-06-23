@@ -68,10 +68,12 @@ public class MainViewController {
         attackerStartComboBox.itemsProperty().bindBidirectional(mainViewModel.getAttackerStartSelectables());
         attackerTargetComboBox.itemsProperty().bindBidirectional(mainViewModel.getAttackerTargetSelectables());
         defenderStartComboBox.itemsProperty().bindBidirectional(mainViewModel.getDefenderStartSelectables());
+        defenderRocketTypeComboBox.itemsProperty().bindBidirectional(mainViewModel.getDefenderRocketTypeSelectables());
 
         attackerStartComboBox.valueProperty().bindBidirectional(mainViewModel.getAttackerStartSelection());
         attackerTargetComboBox.valueProperty().bindBidirectional(mainViewModel.getAttackerTargetSelection());
         defenderStartComboBox.valueProperty().bindBidirectional(mainViewModel.getDefenderStartSelection());
+        defenderRocketTypeComboBox.valueProperty().bindBidirectional(mainViewModel.getDefenderRocketTypeSelection());
 
     }
 
@@ -80,7 +82,7 @@ public class MainViewController {
     }
 
     public void onDefenderSpawnButton(ActionEvent actionEvent) {
-        //mainViewModel.spawnEntity();
+        mainViewModel.spawnDefenderRockets();
     }
 
     public void onMapViewDragged(MouseEvent mouseEvent) {
