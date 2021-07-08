@@ -1,11 +1,8 @@
 package main.java.model.world;
 
-import lombok.Getter;
-import lombok.Setter;
+import main.java.model.Vector2D;
 import main.java.model.WorldModel;
 
-import javax.vecmath.Vector2f;
-import java.util.Timer;
 import java.util.TimerTask;
 
 /**
@@ -13,25 +10,14 @@ import java.util.TimerTask;
  */
 public abstract class DynamicEntity extends Entity implements Runnable {
 
-    /**
-     * The timer used to schedule update iterations.
-     */
-    protected final Timer timer = new Timer(true);
-    /**
-     * The amount of milliseconds between each execution of the update loop.
-     */
-    @Getter
-    @Setter
-    protected int updateInterval;
+    protected double lastUpdateTime;
 
     /**
-     * @param world          Position of the entity in world coordinates.
-     * @param position       The world this entity exists in.
-     * @param updateInterval The amount of milliseconds between each execution of the update loop.
+     * @param world    Position of the entity in world coordinates.
+     * @param position The world this entity exists in.
      */
-    public DynamicEntity(WorldModel world, Vector2f position, Side side, int updateInterval) {
+    public DynamicEntity(WorldModel world, Vector2D position, Side side) {
         super(world, position, side);
-        this.updateInterval = updateInterval;
         this.run();
     }
 
@@ -41,33 +27,47 @@ public abstract class DynamicEntity extends Entity implements Runnable {
      */
     @Override
     public void destruct() {
-        timer.cancel();
         super.destruct();
+    }
+
+    long lastUpdate = 0;
+
+    public TimerTask newUpdateTask() {
+        DynamicEntity outerThis = this;
+        return new TimerTask() {
+            @Override
+            public void run() {
+                if (willBeDestroyed && !isDestroyed) {
+                    world.destroy(outerThis);
+                    return;
+                }
+
+                if (!isDestroyed) {
+                    final double currentTime = world.getCurrentTime();
+                    double deltaTime = currentTime - lastUpdateTime;
+                    lastUpdateTime = currentTime;
+                    update(deltaTime);
+
+                }
+
+                long now = System.nanoTime();
+                world.reportUpdateIntervalNs(now - lastUpdate);
+                world.getTimer().schedule(newUpdateTask(), world.getUpdateInterval());
+                lastUpdate = now;
+            }
+        };
     }
 
     @Override
     public void run() {
-        DynamicEntity outerThis = this;
-        timer.schedule(
-                new TimerTask() {
-                    @Override
-                    public void run() {
-                        if (willBeDestroyed && !isDestroyed) {
-                            world.destroy(outerThis);
-                            return;
-                        }
-
-                        if (!isDestroyed) {
-                            update();
-                        }
-                    }
-                },
-                0,
-                updateInterval);
+        world.getTimer().schedule(newUpdateTask(), world.getUpdateInterval());
+        lastUpdate = System.nanoTime();
     }
 
     /**
      * The method to be called at regular intervals.
+     *
+     * @param deltaTime
      */
-    protected abstract void update();
+    protected abstract void update(double deltaTime);
 }

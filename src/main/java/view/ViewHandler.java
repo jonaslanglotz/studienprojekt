@@ -4,6 +4,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import lombok.Getter;
 import main.java.view.main.MainViewController;
 import main.java.viewmodel.ViewModelFactory;
 
@@ -12,6 +13,8 @@ import java.io.IOException;
 public class ViewHandler {
     private Stage stage;
     private ViewModelFactory viewModelFactory;
+    @Getter
+    private Parent root;
 
     public ViewHandler(Stage stage, ViewModelFactory viewModelFactory) {
         this.stage = stage;
@@ -20,7 +23,6 @@ public class ViewHandler {
 
     public void start() throws IOException {
         Scene scene;
-        Parent root;
         FXMLLoader loader = new FXMLLoader();
 
         loader.setLocation(getClass().getResource("/MainView.fxml"));
@@ -32,7 +34,13 @@ public class ViewHandler {
 
         scene = new Scene(root);
         stage.setScene(scene);
+
+        stage.minWidthProperty().set(600);
+        stage.minHeightProperty().set(600);
+        ;
+
         stage.show();
 
     }
+
 }

@@ -4,13 +4,10 @@ import lombok.Getter;
 import lombok.NonNull;
 import main.java.model.world.Entity;
 
-import javax.vecmath.Vector2f;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
@@ -20,17 +17,36 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
      */
     private int idCounter;
 
+    @Getter
+    private final Timer timer = new Timer(true);
+
+
+    private long defaultUpdateIntervalMs;
+    private double smoothedUpdateIntervalMs = 0;
+    private double resourceUsage = 1;
+
+    public void reportUpdateIntervalNs(long intervalNs) {
+        double smoothing = 0.9;
+        smoothedUpdateIntervalMs = (smoothedUpdateIntervalMs * smoothing) + ((intervalNs * 0.8 / 1000000.0) * (1.0 - smoothing));
+        resourceUsage = smoothedUpdateIntervalMs / defaultUpdateIntervalMs;
+        setMaxSafeSimulationSpeed(wantedSimulationSpeed / resourceUsage);
+    }
+
+    public long getUpdateInterval() {
+        return (long) (entities.size() == 0 ? defaultUpdateIntervalMs : defaultUpdateIntervalMs * resourceUsage);
+    }
+
     /**
      * The width of the world.
      */
     @Getter
-    public final float width;
+    public final double width;
 
     /**
      * The height of the world.
      */
     @Getter
-    public final float height;
+    public final double height;
 
     /**
      * A list of all entities in the world.
@@ -38,10 +54,16 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
     private final List<Entity> entities = Collections.synchronizedList(new ArrayList<>());
 
     /**
-     * The speed the simulation runs at. A value of 1.0 represents real-time.
+     * The speed the simulation should run at.
      */
     @Getter
-    private float simulationSpeed;
+    private double wantedSimulationSpeed;
+
+    /**
+     * The maximum simulation speed the simulation may run at, given the resource limits.
+     */
+    @Getter
+    private double maxSafeSimulationSpeed = Double.POSITIVE_INFINITY;
 
     /**
      * The nanosecond timestamp of the last time update.
@@ -51,14 +73,15 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
     /**
      * The internal float timestamp of the last time update.
      */
-    private float lastUpdateInternalTime;
+    private double lastUpdateInternalTime;
 
     private PropertyChangeSupport changes = new PropertyChangeSupport(this);
 
-    public DefaultWorldModel(float width, float height, float simulationSpeed) {
+    public DefaultWorldModel(double width, double height, double wantedSimulationSpeed, long defaultUpdateIntervalMs) {
         this.width = width;
         this.height = height;
-        this.simulationSpeed = simulationSpeed;
+        this.wantedSimulationSpeed = wantedSimulationSpeed;
+        this.defaultUpdateIntervalMs = defaultUpdateIntervalMs;
 
         this.lastUpdateNs = System.nanoTime();
         this.lastUpdateInternalTime = 0;
@@ -91,9 +114,14 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
     @Override
     public void destroy(@NonNull Entity entity) {
         entity.destruct();
-        if (entities.remove(entity)) {
-            changes.firePropertyChange("entities", null, this.getEntities());
-        }
+        WorldModel outerThis = this;
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                entities.remove(entity);
+                changes.firePropertyChange("entities", null, outerThis.getEntities());
+            }
+        }, 10000);
     }
 
 
@@ -103,7 +131,7 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
     private void updateCurrentTime() {
         long nowNs = System.nanoTime();
         long nsSinceLastUpdate = nowNs - lastUpdateNs;
-        float passedInternalTime = nsSinceLastUpdate * simulationSpeed / 1000000000f;
+        double passedInternalTime = nsSinceLastUpdate * getSimulationSpeed() / 1000000000.0;
 
         lastUpdateInternalTime += passedInternalTime;
         lastUpdateNs = nowNs;
@@ -113,22 +141,36 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
      * @return The current internal timestamp.
      */
     @Override
-    public float getCurrentTime() {
+    public double getCurrentTime() {
         updateCurrentTime();
         return lastUpdateInternalTime;
     }
 
+    @Override
+    public double getSimulationSpeed() {
+        return Math.min(wantedSimulationSpeed, maxSafeSimulationSpeed);
+    }
+
     /**
-     * The speed the simulation runs at. A value of 1.0 represents real-time.
+     * The speed the simulation should run at. A value of 1.0 represents real-time.
      *
-     * @param simulationSpeed The new value.
+     * @param wantedSimulationSpeed The new value.
      */
     @Override
-    public void setSimulationSpeed(float simulationSpeed) {
-        final float oldValue = this.simulationSpeed;
+    public void setWantedSimulationSpeed(double wantedSimulationSpeed) {
+        final double oldValue = this.wantedSimulationSpeed;
         updateCurrentTime();
-        this.simulationSpeed = simulationSpeed;
-        changes.firePropertyChange("simulationSpeed",oldValue, simulationSpeed);
+        this.wantedSimulationSpeed = wantedSimulationSpeed;
+        changes.firePropertyChange("wantedSimulationSpeed", oldValue, wantedSimulationSpeed);
+    }
+
+    /**
+     * @param maxSafeSimulationSpeed The new value.
+     */
+    private void setMaxSafeSimulationSpeed(double maxSafeSimulationSpeed) {
+        updateCurrentTime();
+        this.maxSafeSimulationSpeed = maxSafeSimulationSpeed;
+        //System.out.println(String.format("max: %.2f; usage: %.2f; sim: %.2f; smo: %.2f; up: %d", maxSafeSimulationSpeed, resourceUsage, getSimulationSpeed(), smoothedUpdateIntervalMs, getUpdateInterval()));
     }
 
     @Override
@@ -157,33 +199,31 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
         return getEntities().stream().filter(clazz::isInstance).map(entity -> (T) entity).collect(Collectors.toList());
     }
 
-    public List<Entity> getEntitiesByPosition(Vector2f position, float radius) {
-        return getEntities().stream().filter(entity -> {
+    public List<Entity> getEntitiesByPosition(Vector2D position, double radius) {
+        return getEntitiesByPosition(position, radius, false);
+    }
+
+    public List<Entity> getEntitiesByPosition(Vector2D position, double radius, boolean includeDestroyed) {
+
+        HashMap<Vector2D, Entity> map = new HashMap<>();
+
+        getEntities().stream().filter(entity -> includeDestroyed || !entity.isDestroyed()).forEach(entity -> {
             if (entity == null || entity.isDestroyed()) {
-                return false;
+                return;
             }
-            Vector2f difference = new Vector2f(entity.getPosition().x - position.x, entity.getPosition().y - position.y);
-            return difference.length() < radius;
-        }).sorted((o1, o2) -> {
-            if (o1.isDestroyed() && o2.isDestroyed()) {
-                return 0;
+            Vector2D difference = entity.getPosition().sub(position);
+            if (difference.length() < radius) {
+                map.put(entity.getPosition(), entity);
             }
+        });
 
-            if (o1.isDestroyed()) {
-                return 1;
-            }
+        ArrayList<Vector2D> sortedPositions = map.keySet().stream().sorted((o1, o2) -> {
+            Double distance1 = o1.distanceTo(position);
+            Double distance2 = o2.distanceTo(position);
+            return distance1.compareTo(distance2);
+        }).collect(Collectors.toCollection(ArrayList::new));
 
-            if (o2.isDestroyed()) {
-                return -1;
-            }
-            Vector2f difference1 = new Vector2f(o1.getPosition().x - position.x, o1.getPosition().y - position.y);
-            Vector2f difference2 = new Vector2f(o2.getPosition().x - position.x, o2.getPosition().y - position.y);
-
-            Float length1 = difference1.length();
-            Float length2 = difference2.length();
-
-            return length1.compareTo(length2);
-        }).collect(Collectors.toList());
+        return sortedPositions.stream().map(map::get).collect(Collectors.toCollection(ArrayList::new));
     }
 
     /**

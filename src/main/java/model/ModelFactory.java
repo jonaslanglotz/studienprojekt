@@ -4,15 +4,13 @@ import lombok.Getter;
 import main.java.model.world.Base;
 import main.java.model.world.Side;
 
-import javax.vecmath.Vector2f;
-
 public class ModelFactory {
 
     @Getter
     WorldModel worldModel;
 
     public ModelFactory() {
-        worldModel = new DefaultWorldModel(1000, 1000, 1);
+        worldModel = new DefaultWorldModel(1000, 1000, 1, 20);
         for (int i = 0; i < 3; i++) {
             worldModel.spawn(new Base(worldModel, generateBaseCoordinates(0, 20, 700, 200), Side.ATTACKER));
         }
@@ -21,14 +19,14 @@ public class ModelFactory {
         }
     }
 
-    private Vector2f generateBaseCoordinates(float minX, float minY, float maxX, float maxY) {
-        float x = (float) (minX + Math.random() * (maxX - minX));
-        float y = (float) (minY + Math.random() * (maxY - minY));
-        Vector2f position = new Vector2f(x, y);
+    private Vector2D generateBaseCoordinates(float minX, float minY, float maxX, float maxY) {
+        double x = minX + Math.random() * (maxX - minX);
+        double y = minY + Math.random() * (maxY - minY);
+        Vector2D position = new Vector2D(x, y);
         for (Base base :
                 worldModel.getEntitiesByType(Base.class)) {
-            Vector2f basePosition = base.getPosition();
-            Vector2f difference = new Vector2f(basePosition.x - position.x, basePosition.y - position.y);
+            Vector2D basePosition = base.getPosition();
+            Vector2D difference = basePosition.sub(position);
             if (difference.length() <= 10) {
                 return generateBaseCoordinates(minX, minY, maxX, maxY);
             }

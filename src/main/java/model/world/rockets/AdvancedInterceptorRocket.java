@@ -1,14 +1,14 @@
 package main.java.model.world.rockets;
 
 import lombok.NonNull;
+import main.java.model.Vector2D;
 import main.java.model.WorldModel;
 import main.java.model.world.Entity;
 import main.java.model.world.Side;
-import main.java.model.world.SimplexNoise;
 import main.java.model.world.Util;
 
-import javax.vecmath.Vector2f;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AdvancedInterceptorRocket extends Rocket {
 
@@ -22,12 +22,12 @@ public class AdvancedInterceptorRocket extends Rocket {
      * @param velocity
      * @param steerRate
      */
-    public AdvancedInterceptorRocket(WorldModel world, Vector2f position, Side side, int updateInterval, float errorRate, Vector2f velocity, float steerRate, Rocket targetRocket) {
+    public AdvancedInterceptorRocket(WorldModel world, Vector2D position, Side side, int updateInterval, double errorRate, Vector2D velocity, double steerRate, Rocket targetRocket) {
         super(world, position, side, updateInterval, errorRate, targetRocket.getPosition(), velocity, steerRate);
         this.targetRocket = targetRocket;
     }
 
-    public AdvancedInterceptorRocket(WorldModel world, Vector2f position, Side side, int updateInterval, float errorRate, float speed, float steerRate, @NonNull Rocket targetRocket) {
+    public AdvancedInterceptorRocket(WorldModel world, Vector2D position, Side side, int updateInterval, double errorRate, double speed, double steerRate, @NonNull Rocket targetRocket) {
         super(world, position, side, updateInterval, errorRate, targetRocket.getPosition(), speed, steerRate);
         this.targetRocket = targetRocket;
     }
@@ -36,73 +36,36 @@ public class AdvancedInterceptorRocket extends Rocket {
      * Perform one simulation step for this rocket.
      * <p>
      * The advanced interceptor rocket tries to predict the future path of an incoming rocket, and intercepting a predicted future point in space.
+     *
+     * @param deltaTime
      */
     @Override
-    protected void update() {
-        if (targetRocket.isDestroyed()) {
+    protected void update(double deltaTime) {
+        if (targetRocket == null || targetRocket.isDestroyed()) {
             targetRocket = null;
             List<Rocket> rockets = world.getEntitiesByType(Rocket.class);
             for (Rocket rocket : rockets) {
                 if (rocket.getSide() != side) {
-                    this.targetRocket = rocket;
+                    Vector2D intersection = Util.calculateIntersectionCoordinates(rocket.getPosition(), rocket.getVelocity(), position, velocity.length());
+                    if (intersection != null) {
+                        targetPosition = intersection;
+                        this.targetRocket = rocket;
+                    }
                 }
+            }
+        } else {
+            Vector2D intersection = Util.calculateIntersectionCoordinates(targetRocket.getPosition(), targetRocket.getVelocity(), position, velocity.length());
+            if (intersection == null) {
+                targetRocket = null;
+            } else {
+                targetPosition = intersection;
             }
         }
 
-        // Calculate passed in-world time
-        final float currentTime = world.getCurrentTime();
-        float deltaTime = currentTime - lastUpdateTime;
-        lastUpdateTime = currentTime;
-
-        // Copy position and velocity values
-        Vector2f newPosition = new Vector2f(position);
-        Vector2f newVelocity = new Vector2f(velocity);
-
-        if (targetRocket == null || targetRocket.isDestroyed()) {
-            setWillBeDestroyed(true);
-            return;
-        }
-        // Calculate vector pointing to target
-        Vector2f intersection = Util.calculateIntersectionCoordinates(targetRocket.getPosition(), targetRocket.getVelocity(), position, velocity.length());
-        Vector2f targetDirection = new Vector2f(intersection.x - position.x, intersection.y - position.y);
-
-        // Calculate perp dot product (angle in radians to targetDirection from velocity)
-        float wantedTurnAngle =
-                (float) Math.atan2(velocity.x * targetDirection.y - velocity.y * targetDirection.x,
-                        velocity.x * targetDirection.x + velocity.y * targetDirection.y);
-
-        // Calculate actual turn angle based on steerRate and passed time
-        float turnAngle;
-        if (wantedTurnAngle <= 0) {
-            turnAngle = Math.max(wantedTurnAngle, steerRate * deltaTime * -1);
-        } else {
-            turnAngle = Math.min(wantedTurnAngle, steerRate * deltaTime);
-        }
-
-        // Apply random offset to turning angle
-        final float noiseScale = 0.1f;
-
-        turnAngle += (SimplexNoise.noise(position.x * noiseScale, position.y * noiseScale)) * 1 * errorStrength * deltaTime;
-
-        // Rotate the velocity vector by turnAngle
-        newVelocity = new Vector2f(
-                (float) (Math.cos(turnAngle) * newVelocity.x - Math.sin(turnAngle) * newVelocity.y),
-                (float) (Math.sin(turnAngle) * newVelocity.x + Math.cos(turnAngle) * newVelocity.y));
-
-        // Save new Velocity
-        velocity = newVelocity;
-
-        newVelocity = new Vector2f(newVelocity);
-
-        // Apply time scaling to calculated velocity and apply it
-        newVelocity.scale(deltaTime, velocity);
-        newPosition.add(newVelocity);
-
-        // Save new position
-        setPosition(newPosition);
+        super.update(deltaTime);
 
         if (shouldExplode()) {
-            List<Entity> entities = world.getEntitiesByPosition(position, 10);
+            List<Entity> entities = world.getEntitiesByPosition(position, 10).stream().filter(entity -> entity instanceof Rocket).collect(Collectors.toList());
             for (Entity entity : entities) {
                 if (entity.getSide() != side) {
                     entity.setWillBeDestroyed(true);
@@ -117,10 +80,11 @@ public class AdvancedInterceptorRocket extends Rocket {
      */
     @Override
     protected boolean shouldExplode() {
-        if (targetRocket.isDestroyed()) {
-            return false;
+        if (targetRocket == null || targetRocket.isDestroyed()) {
+            return true;
         }
-        Vector2f difference = new Vector2f(targetRocket.getPosition().x - position.x, targetRocket.getPosition().y - position.y);
+
+        Vector2D difference = targetPosition.sub(position);
         return difference.length() < 5;
     }
 }

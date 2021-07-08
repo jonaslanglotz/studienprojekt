@@ -6,17 +6,18 @@ import javafx.beans.property.*;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import lombok.Getter;
+import main.java.model.Vector2D;
 import main.java.model.WorldModel;
 import main.java.model.world.Base;
 import main.java.model.world.Entity;
 import main.java.model.world.Side;
+import main.java.model.world.Util;
 import main.java.model.world.rockets.Rocket;
+import main.java.model.world.rockets.RocketType;
 
 import java.beans.PropertyChangeEvent;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class MainViewModel {
@@ -67,6 +68,21 @@ public class MainViewModel {
     @Getter
     private StringProperty defenderRocketTypeSelection;
 
+    @Getter
+    private BooleanProperty defenderAutomaticMode;
+
+    @Getter
+    private DoubleProperty defenderLaunchSpeed;
+
+    @Getter
+    private IntegerProperty defenderRocketsPerThreat;
+
+    @Getter
+    private ObjectProperty<Entity> selectedEntity;
+
+    @Getter
+    private BooleanProperty entityLock;
+
 
     public MainViewModel(WorldModel worldModel) {
         this.worldModel = worldModel;
@@ -100,7 +116,7 @@ public class MainViewModel {
                 FXCollections.observableArrayList(getBaseNames(defenderBases)));
 
         defenderRocketTypeSelectables = new SimpleObjectProperty<>(
-                FXCollections.observableArrayList("Flak", "SimpleInterceptor", "AdvancedInterceptor")
+                FXCollections.observableArrayList(Arrays.stream(RocketType.values()).map(Enum::name).collect(Collectors.toList()))
         );
 
         attackerStartSelection = new SimpleStringProperty(attackerStartSelectables.getValue().get(0));
@@ -108,40 +124,46 @@ public class MainViewModel {
         defenderStartSelection = new SimpleStringProperty(defenderStartSelectables.getValue().get(0));
         defenderRocketTypeSelection = new SimpleStringProperty(defenderRocketTypeSelectables.getValue().get(0));
 
+        defenderRocketTypeSelection.addListener((observable, oldValue, newValue) -> {
+            worldModel.getEntitiesByType(Base.class).forEach(base -> base.setDefenseRocketType(RocketType.valueOf(newValue)));
+        });
+
+        defenderAutomaticMode = new SimpleBooleanProperty();
+
+        defenderAutomaticMode.addListener((observable, oldValue, newValue) -> {
+            worldModel.getEntitiesByType(Base.class).forEach(base -> base.setInAutomaticMode(newValue));
+        });
+
+        defenderLaunchSpeed = new SimpleDoubleProperty(3);
+        defenderLaunchSpeed.addListener((observable, oldValue, newValue) -> {
+            worldModel.getEntitiesByType(Base.class).forEach(base -> base.setLaunchSpeed(newValue.doubleValue()));
+        });
+
+        defenderRocketsPerThreat = new SimpleIntegerProperty(3);
+        defenderRocketsPerThreat.addListener((observable, oldValue, newValue) -> {
+            System.out.println(newValue.intValue());
+            worldModel.getEntitiesByType(Base.class).forEach(base -> base.setDefenseRocketsPerThreat(newValue.intValue()));
+        });
+
+        selectedEntity = new SimpleObjectProperty<>();
+        entityLock = new SimpleBooleanProperty();
+
         this.worldModel.addPropertyChangeListener(this::updateValues);
     }
-
-    int updatesPerSecond = 60;
-    long lastEntityUpdate = 0;
-    Timer updateTimer = new Timer(true);
-    boolean isTimerSet = false;
 
     public void updateValues(PropertyChangeEvent evt) {
         switch (evt.getPropertyName()) {
             case "entities":
-                long now = System.nanoTime();
-                long timeSinceLastUpdate = now - lastEntityUpdate;
+                Util.batch(String.valueOf(this.hashCode()), () -> {
+                    Platform.runLater(() -> {
+                        entities.setAll(worldModel.getEntities());
 
-                if (timeSinceLastUpdate < 1000000000f / updatesPerSecond) {
-                    if (!isTimerSet) {
-                        isTimerSet = true;
-                        updateTimer.schedule(new TimerTask() {
-                            @Override
-                            public void run() {
-                                Platform.runLater(() -> {
-                                    entities.setAll(worldModel.getEntities());
-                                    lastEntityUpdate = System.nanoTime();
-                                    isTimerSet = false;
-                                });
-                            }
-                        }, (long) ((1000f / updatesPerSecond) - timeSinceLastUpdate / 1000000f));
-                    }
-                    return;
-                }
-
-                Platform.runLater(() -> entities.setAll((List<Entity>) evt.getNewValue()));
-                lastEntityUpdate = System.nanoTime();
-
+                        if (selectedEntity.get() != null && !selectedEntity.get().isWillBeDestroyed() && entityLock.get()) {
+                            centerWorldX.set(selectedEntity.get().getPosition().x);
+                            centerWorldY.set(selectedEntity.get().getPosition().y);
+                        }
+                    });
+                }, 60);
                 break;
 
             default:
@@ -173,9 +195,10 @@ public class MainViewModel {
         return worldModel.getEntitiesByType(Base.class).stream().filter(base -> base.getName().equals(name)).findFirst().orElse(null);
     }
 
-    public void dragMap(float x, float y) {
+    public void dragMap(double x, double y) {
         centerWorldX.set(centerWorldX.floatValue() + x / zoom.getValue());
         centerWorldY.set(centerWorldY.floatValue() + y / zoom.getValue());
+        entityLock.set(false);
     }
 
     public void zoomMap(double v) {
@@ -183,53 +206,17 @@ public class MainViewModel {
     }
 
     public void spawnDefenderRockets() {
-        switch (defenderRocketTypeSelection.getValue()) {
-            case "Flak":
-                worldModel.getEntitiesByType(Rocket.class).stream()
-                        .filter(rocket -> rocket.getSide() == Side.ATTACKER)
-                        .forEach(rocket -> {
-                            getBaseFromName(defenderStartSelection.getValue())
-                                    .spawnDefendingFlakRocket(
-                                            20,
-                                            rocket,
-                                            100
-                                    );
-                        });
 
-                break;
-            case "SimpleInterceptor":
-                worldModel.getEntitiesByType(Rocket.class).stream()
-                        .filter(rocket -> rocket.getSide() == Side.ATTACKER)
-                        .forEach(rocket -> {
-                            getBaseFromName(defenderStartSelection.getValue())
-                                    .spawnDefendingSimpleInterceptorRocket(
-                                            20,
-                                            2,
-                                            rocket,
-                                            100,
-                                            1
-                                    );
-                        });
+        ArrayList<Rocket> threats = worldModel.getEntitiesByType(Rocket.class).stream()
+                .filter(rocket -> rocket.getSide() == Side.ATTACKER && !rocket.isWillBeDestroyed()).collect(Collectors.toCollection(ArrayList::new));
 
-                break;
+        Base spawnBase = getBaseFromName(defenderStartSelection.getValue());
 
-            case "AdvancedInterceptor":
-                worldModel.getEntitiesByType(Rocket.class).stream()
-                        .filter(rocket -> rocket.getSide() == Side.ATTACKER)
-                        .forEach(rocket -> {
-                            getBaseFromName(defenderStartSelection.getValue())
-                                    .spawnDefendingAdvancedInterceptorRocket(
-                                            20,
-                                            2,
-                                            rocket,
-                                            100,
-                                            1
-                                    );
-                        });
+        threats.forEach(spawnBase::spawnDefendingRocket);
+    }
 
-                break;
-            default:
-                break;
-        }
+    public void selectEntityAtCoordinates(Vector2D position, double radius) {
+        selectedEntity.set(worldModel.getEntitiesByPosition(position, radius).stream().findFirst().orElse(null));
+        entityLock.set(true);
     }
 }

@@ -1,50 +1,86 @@
 <?import javafx.scene.control.*?>
-<?import javafx.scene.layout.BorderPane?>
-<?import javafx.scene.layout.FlowPane?>
-<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.*?>
+<?import main.java.view.main.EntityView?>
 <?import main.java.view.main.MapView?>
-<BorderPane fx:controller="main.java.view.main.MainViewController"
-            xmlns:fx="http://javafx.com/fxml" prefHeight="700" prefWidth="700"
+<AnchorPane maxHeight="600.0" maxWidth="600.0" minHeight="600.0" minWidth="600.0" prefHeight="600.0"
+            prefWidth="600.0" fx:controller="main.java.view.main.MainViewController"
+            xmlns:fx="http://javafx.com/fxml"
             stylesheets="@../main/MainView.css">
-    <left>
-        <FlowPane orientation="VERTICAL" alignment="CENTER" hgap="10" vgap="10" minWidth="200">
-            <Label>Raketentyp</Label>
-            <ComboBox fx:id="defenderRocketTypeComboBox"/>
-            <Label>Startpunkt</Label>
-            <ComboBox fx:id="defenderStartComboBox"/>
-            <Button mnemonicParsing="false" fx:id="defenderSpawnButton"
-                    onAction="#onDefenderSpawnButton">
-                Starten
-            </Button>
-        </FlowPane>
-    </left>
-    <center>
-        <StackPane fx:id="stackPane" maxHeight="700" maxWidth="700" minHeight="700" minWidth="700"
-                   prefWidth="700"
-                   prefHeight="700">
-            <MapView fx:id="mapView" width="700" height="700" onMouseDragged="#onMapViewDragged"
-                     onMousePressed="#onMapViewPressed" onScroll="#onMapViewScroll"/>
-        </StackPane>
-    </center>
-    <right>
-        <FlowPane orientation="VERTICAL" alignment="CENTER" hgap="10" vgap="10" minWidth="200">
-            <Label>Geschwindigkeit</Label>
-            <Slider fx:id="attackerSpeedSlider" min="10" max="200" showTickLabels="true"
-                    showTickMarks="true" majorTickUnit="90"/>
-            <Label>Fehlerstärke</Label>
-            <Slider fx:id="attackerErrorStrengthSlider" min="0" max="10" showTickLabels="true"
-                    showTickMarks="true" majorTickUnit="5"/>
-            <Label>Anzahl der Raketen</Label>
-            <Slider fx:id="attackerRocketAmountSlider" min="1" max="20" showTickLabels="true"
-                    showTickMarks="true" majorTickUnit="9"/>
-            <Label>Startpunkt</Label>
-            <ComboBox fx:id="attackerStartComboBox"/>
-            <Label>Ziel</Label>
-            <ComboBox fx:id="attackerTargetComboBox"/>
-            <Button mnemonicParsing="false" fx:id="attackerSpawnButton"
-                    onAction="#onAttackerSpawnButton">
-                Starten
-            </Button>
-        </FlowPane>
-    </right>
-</BorderPane>
+    <children>
+        <HBox prefHeight="700" prefWidth="700" AnchorPane.bottomAnchor="0.0"
+              AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+            <children>
+                <BorderPane HBox.hgrow="ALWAYS" minWidth="500" minHeight="500">
+                    <left>
+                        <FlowPane orientation="VERTICAL" alignment="CENTER" hgap="10" vgap="10"
+                                  minWidth="200" minHeight="500">
+                            <Label>Raketentyp</Label>
+                            <ComboBox fx:id="defenderRocketTypeComboBox"/>
+                            <Label>Startpunkt</Label>
+                            <ComboBox fx:id="defenderStartComboBox"/>
+                            <Button mnemonicParsing="false" fx:id="defenderSpawnButton"
+                                    onAction="#onDefenderSpawnButton">
+                                Starten
+                            </Button>
+                            <ToggleButton fx:id="defenderAutomaticModeButton">
+                                Automatik
+                            </ToggleButton>
+                            <Label>Start-Geschwindigkeit</Label>
+                            <Slider fx:id="defenderLauchSpeedSlider" min="1" max="10"
+                                    showTickLabels="true"
+                                    showTickMarks="true" majorTickUnit="3"/>
+                            <Label>Raketen pro Ziel</Label>
+                            <Slider fx:id="defenderRocketAmountSlider" min="1" max="10"
+                                    showTickLabels="true"
+                                    showTickMarks="true" majorTickUnit="3"/>
+                        </FlowPane>
+                    </left>
+                    <center>
+                        <VBox minWidth="0" minHeight="0">
+                            <children>
+                                <StackPane VBox.vgrow="ALWAYS" minWidth="0" minHeight="0"
+                                           fx:id="stackPane">
+                                    <MapView fx:id="mapView" onMouseDragged="#onMapViewDragged"
+                                             onMousePressed="#onMapViewPressed"
+                                             onScroll="#onMapViewScroll"
+                                             onMouseClicked="#onMapViewClicked"
+                                    />
+                                </StackPane>
+                                <EntityView fx:id="entityView" VBox.vgrow="ALWAYS" minWidth="0"
+                                            minHeight="0"
+                                            prefHeight="200" maxHeight="200">
+
+                                </EntityView>
+                            </children>
+                        </VBox>
+                    </center>
+                    <right>
+                        <FlowPane orientation="VERTICAL" alignment="CENTER" hgap="10" vgap="10"
+                                  minWidth="200" minHeight="500">
+                            <Label>Geschwindigkeit</Label>
+                            <Slider fx:id="attackerSpeedSlider" min="10" max="200"
+                                    showTickLabels="true"
+                                    showTickMarks="true" majorTickUnit="90"/>
+                            <Label>Fehlerstärke</Label>
+                            <Slider fx:id="attackerErrorStrengthSlider" min="0" max="3"
+                                    showTickLabels="true"
+                                    showTickMarks="true" majorTickUnit="1"/>
+                            <Label>Anzahl der Raketen</Label>
+                            <Slider fx:id="attackerRocketAmountSlider" min="1" max="20"
+                                    showTickLabels="true"
+                                    showTickMarks="true" majorTickUnit="9"/>
+                            <Label>Startpunkt</Label>
+                            <ComboBox fx:id="attackerStartComboBox"/>
+                            <Label>Ziel</Label>
+                            <ComboBox fx:id="attackerTargetComboBox"/>
+                            <Button mnemonicParsing="false" fx:id="attackerSpawnButton"
+                                    onAction="#onAttackerSpawnButton">
+                                Starten
+                            </Button>
+                        </FlowPane>
+                    </right>
+                </BorderPane>
+            </children>
+        </HBox>
+    </children>
+</AnchorPane>

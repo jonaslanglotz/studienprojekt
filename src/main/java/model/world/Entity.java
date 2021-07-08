@@ -3,9 +3,9 @@ package main.java.model.world;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
+import main.java.model.Vector2D;
 import main.java.model.WorldModel;
 
-import javax.vecmath.Vector2f;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
 import java.util.Arrays;
@@ -18,7 +18,7 @@ public class Entity {
      * The instant in world time when this entity was created.
      */
     @Getter
-    public final float creationTime;
+    public final double creationTime;
 
     /**
      * The id of this entity.
@@ -42,6 +42,9 @@ public class Entity {
     @Setter
     protected boolean willBeDestroyed = false;
 
+    @Getter
+    protected double destructionTime;
+
     /**
      * The world this entity exists in.
      */
@@ -51,14 +54,14 @@ public class Entity {
      * Position of the entity in world coordinates.
      */
     @Getter
-    protected Vector2f position;
+    protected Vector2D position;
     protected final PropertyChangeSupport changes = new PropertyChangeSupport(this);
 
     /**
      * @param world    Position of the entity in world coordinates.
      * @param position The world this entity exists in.
      */
-    public Entity(@NonNull WorldModel world, @NonNull Vector2f position, Side side) {
+    public Entity(@NonNull WorldModel world, @NonNull Vector2D position, Side side) {
         this.world = world;
         this.position = position;
 
@@ -74,11 +77,10 @@ public class Entity {
         if (isDestroyed) {
             return;
         }
+        destructionTime = world.getCurrentTime();
         isDestroyed = true;
         Arrays.stream(changes.getPropertyChangeListeners())
                 .forEach(changes::removePropertyChangeListener);
-        world = null;
-        position = null;
     }
 
     /**
@@ -86,8 +88,8 @@ public class Entity {
      *
      * @param position The new value.
      */
-    public void setPosition(@NonNull Vector2f position) {
-        final Vector2f oldValue = this.position;
+    public void setPosition(@NonNull Vector2D position) {
+        final Vector2D oldValue = this.position;
         this.position = position;
         changes.firePropertyChange("position", oldValue, position);
     }

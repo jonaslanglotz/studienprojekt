@@ -1,21 +1,31 @@
 package main.java.view.main;
 
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Slider;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.StackPane;
+import main.java.model.Vector2D;
+import main.java.model.world.Util;
 import main.java.viewmodel.MainViewModel;
-
-import javax.vecmath.Vector2f;
 
 public class MainViewController {
     MainViewModel mainViewModel;
 
     @FXML
     MapView mapView;
+
+    @FXML
+    EntityView entityView;
+
+    @FXML
+    StackPane stackPane;
 
 
     /* Defender Options */
@@ -29,6 +39,14 @@ public class MainViewController {
     @FXML
     Button defenderSpawnButton;
 
+    @FXML
+    ToggleButton defenderAutomaticModeButton;
+
+    @FXML
+    Slider defenderLauchSpeedSlider;
+
+    @FXML
+    Slider defenderRocketAmountSlider;
 
     /* Attacker Options */
 
@@ -50,16 +68,22 @@ public class MainViewController {
     @FXML
     Button attackerSpawnButton;
 
-    Vector2f lastMouseCoordinates;
+    Vector2D lastMouseCoordinates;
 
     public void init(MainViewModel mainViewModel) {
         this.mainViewModel = mainViewModel;
+
+        entityView.getEntity().bindBidirectional(mainViewModel.getSelectedEntity());
+
         mapView.getEntities().bind(mainViewModel.getEntities());
         mapView.getCenterWorldX().bind(mainViewModel.getCenterWorldX());
         mapView.getCenterWorldY().bind(mainViewModel.getCenterWorldY());
         mapView.getZoom().bind(mainViewModel.getZoom());
         mapView.getWorldWidth().bind(mainViewModel.getWorldWidth());
         mapView.getWorldHeight().bind(mainViewModel.getWorldHeight());
+
+        mapView.widthProperty().bind(stackPane.widthProperty());
+        mapView.heightProperty().bind(stackPane.heightProperty());
 
         attackerSpeedSlider.valueProperty().bindBidirectional(mainViewModel.getAttackerSpeed());
         attackerErrorStrengthSlider.valueProperty().bindBidirectional(mainViewModel.getAttackerErrorStrength());
@@ -75,6 +99,12 @@ public class MainViewController {
         defenderStartComboBox.valueProperty().bindBidirectional(mainViewModel.getDefenderStartSelection());
         defenderRocketTypeComboBox.valueProperty().bindBidirectional(mainViewModel.getDefenderRocketTypeSelection());
 
+        defenderAutomaticModeButton.selectedProperty().bindBidirectional(mainViewModel.getDefenderAutomaticMode());
+        defenderSpawnButton.disableProperty().bind(defenderAutomaticModeButton.selectedProperty());
+
+        defenderLauchSpeedSlider.valueProperty().bindBidirectional(mainViewModel.getDefenderLaunchSpeed());
+        defenderRocketAmountSlider.valueProperty().bindBidirectional(mainViewModel.getDefenderRocketsPerThreat());
+
     }
 
     public void onAttackerSpawnButton(ActionEvent actionEvent) {
@@ -85,19 +115,35 @@ public class MainViewController {
         mainViewModel.spawnDefenderRockets();
     }
 
+    Vector2D dragOffset = Vector2D.ZERO();
     public void onMapViewDragged(MouseEvent mouseEvent) {
-        Vector2f coordinates = new Vector2f((float) mouseEvent.getX(), (float) mouseEvent.getY());
-        Vector2f delta = new Vector2f(coordinates);
-        delta.sub(lastMouseCoordinates);
+        if (!mouseEvent.isSecondaryButtonDown() && !mouseEvent.isMiddleButtonDown()) {
+            return;
+        }
+        Vector2D coordinates = new Vector2D(mouseEvent.getX(), mouseEvent.getY());
+        Vector2D delta = coordinates.sub(lastMouseCoordinates);
         lastMouseCoordinates = coordinates;
-        mainViewModel.dragMap(-delta.x, -delta.y);
+        dragOffset = dragOffset.add(delta.scale(-1));
+
+        Util.batch(String.valueOf(this.hashCode()), () -> Platform.runLater(() -> {
+            mainViewModel.dragMap(dragOffset.x, dragOffset.y);
+            dragOffset = Vector2D.ZERO();
+        }), 60);
     }
 
     public void onMapViewPressed(MouseEvent mouseEvent) {
-        lastMouseCoordinates = new Vector2f((float) mouseEvent.getX(), (float) mouseEvent.getY());
+        lastMouseCoordinates = new Vector2D(mouseEvent.getX(), mouseEvent.getY());
     }
 
     public void onMapViewScroll(ScrollEvent scrollEvent) {
         mainViewModel.zoomMap(scrollEvent.getDeltaY() / 400);
+    }
+
+    public void onMapViewClicked(MouseEvent mouseEvent) {
+        if (!mouseEvent.getButton().equals(MouseButton.PRIMARY)) {
+            return;
+        }
+        Vector2D clickCoordinates = new Vector2D(mouseEvent.getX(), mouseEvent.getY());
+        mainViewModel.selectEntityAtCoordinates(mapView.canvasToWorldCoordinates(clickCoordinates), Math.max(30, mapView.canvasToWorldLength(30)));
     }
 }

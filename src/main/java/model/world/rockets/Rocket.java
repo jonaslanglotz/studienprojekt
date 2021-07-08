@@ -2,25 +2,25 @@ package main.java.model.world.rockets;
 
 import lombok.Getter;
 import lombok.NonNull;
+import main.java.model.Vector2D;
 import main.java.model.WorldModel;
 import main.java.model.world.DynamicEntity;
 import main.java.model.world.Side;
 import main.java.model.world.SimplexNoise;
 
-import javax.vecmath.Vector2f;
-
 public class Rocket extends DynamicEntity {
 
-    final protected Vector2f startPosition;
     @Getter
-    protected float errorStrength;
-    protected Vector2f targetPosition;
-    protected Vector2f velocity;
+    final protected Vector2D startPosition;
+    @Getter
+    protected double errorStrength;
+    @Getter
+    protected Vector2D targetPosition;
+    @Getter
+    protected Vector2D velocity;
 
     @Getter
-    protected float steerRate;
-
-    protected float lastUpdateTime;
+    protected double steerRate;
 
     /**
      * @param world          The world this entity is spawned in
@@ -31,11 +31,10 @@ public class Rocket extends DynamicEntity {
      * @param velocity       The vector representation of the rockets movement.
      * @param steerRate      The maximum angle a rocket can turn per second.
      */
-    public Rocket(WorldModel world, Vector2f position, Side side, int updateInterval, float errorStrength,
-                  @NonNull Vector2f targetPosition, @NonNull Vector2f velocity, float steerRate) {
-        super(world, position, side, updateInterval);
+    public Rocket(WorldModel world, Vector2D position, Side side, int updateInterval, double errorStrength,
+                  @NonNull Vector2D targetPosition, @NonNull Vector2D velocity, double steerRate) {
+        super(world, position, side);
         this.startPosition = position;
-
         this.errorStrength = errorStrength;
         this.targetPosition = targetPosition;
         this.velocity = velocity;
@@ -52,104 +51,62 @@ public class Rocket extends DynamicEntity {
      * @param speed          The speed the rocket should fly at
      * @param steerRate      The maximum angle a rocket can turn per second.
      */
-    public Rocket(WorldModel world, Vector2f position, Side side, int updateInterval, float errorStrength,
-                  @NonNull Vector2f targetPosition, float speed, float steerRate) {
+    public Rocket(WorldModel world, Vector2D position, Side side, int updateInterval, double errorStrength,
+                  @NonNull Vector2D targetPosition, double speed, double steerRate) {
         this(world, position, side, updateInterval, errorStrength, targetPosition, calculateVelocity(position, targetPosition, speed), steerRate);
     }
 
-    static private Vector2f calculateVelocity(Vector2f position, Vector2f targetPosition, float speed) {
-        Vector2f deltaPosition = new Vector2f(targetPosition.x - position.x, targetPosition.y - position.y);
-        deltaPosition.normalize();
-        deltaPosition.scale(speed);
-        return deltaPosition;
+    static private Vector2D calculateVelocity(Vector2D position, Vector2D targetPosition, double speed) {
+        Vector2D deltaPosition = targetPosition.sub(position);
+        return deltaPosition.normalize().scale(speed);
     }
 
-    public void setErrorStrength(float errorStrength) {
-        final float oldValue = this.errorStrength;
+    public void setErrorStrength(double errorStrength) {
+        final double oldValue = this.errorStrength;
         this.errorStrength = errorStrength;
         changes.firePropertyChange("errorStrength", oldValue, errorStrength);
     }
 
-    public void setSteerRate(float steerRate) {
-        final float oldValue = this.steerRate;
+    public void setSteerRate(double steerRate) {
+        final double oldValue = this.steerRate;
         this.steerRate = steerRate;
         changes.firePropertyChange("steerRate", oldValue, steerRate);
     }
 
-    public Vector2f getTargetPosition() {
-        return (Vector2f) targetPosition.clone();
-    }
-
-    public void setTargetPosition(@NonNull Vector2f targetPosition) {
-        final Vector2f oldValue = (Vector2f) this.targetPosition.clone();
+    public void setTargetPosition(@NonNull Vector2D targetPosition) {
+        final Vector2D oldValue = this.targetPosition;
         this.targetPosition = targetPosition;
         changes.firePropertyChange("targetPosition", oldValue, targetPosition);
     }
 
-    public Vector2f getStartPosition() {
-        return (Vector2f) startPosition.clone();
-    }
-
-    public Vector2f getVelocity() {
-        return (Vector2f) velocity.clone();
-    }
-
-    public void setVelocity(@NonNull Vector2f velocity) {
-        final Vector2f oldValue = (Vector2f) this.velocity.clone();
+    public void setVelocity(@NonNull Vector2D velocity) {
+        final Vector2D oldValue = this.velocity;
         this.velocity = velocity;
         changes.firePropertyChange("velocity", oldValue, velocity);
     }
 
-    protected void update() {
-        // Calculate passed in-world time
-        final float currentTime = world.getCurrentTime();
-        float deltaTime = currentTime - lastUpdateTime;
-        lastUpdateTime = currentTime;
+    protected void update(double deltaTime) {
 
-        // Copy position and velocity values
-        Vector2f newPosition = new Vector2f(position);
-        Vector2f newVelocity = new Vector2f(velocity);
+        Vector2D targetDirection = targetPosition.sub(position);
+        double speed = velocity.length();
 
-        // Calculate vector pointing to target
-        Vector2f targetDirection = new Vector2f(targetPosition.x - position.x, targetPosition.y - position.y);
-
-        // Calculate perp dot product (angle in radians to targetDirection from velocity)
-        float wantedTurnAngle =
-                (float) Math.atan2(velocity.x * targetDirection.y - velocity.y * targetDirection.x,
-                        velocity.x * targetDirection.x + velocity.y * targetDirection.y);
-
-        // Calculate actual turn angle based on steerRate and passed time
-        float turnAngle;
-        if (wantedTurnAngle <= 0) {
-            turnAngle = Math.max(wantedTurnAngle, steerRate * deltaTime * -1);
-        } else {
-            turnAngle = Math.min(wantedTurnAngle, steerRate * deltaTime);
-        }
+        double wantedTurnAngle = velocity.signedAngle(targetDirection);
+        double maximumAngle = steerRate * deltaTime;
+        double turnAngle = Math.max(-maximumAngle, Math.min(maximumAngle, wantedTurnAngle));
 
         // Apply random offset to turning angle
-        final float noiseScale = 0.1f;
+        final double noiseScale = 1;
+        final double offset = id * 100.0;
+        turnAngle += SimplexNoise.noise((position.x + offset) * (noiseScale / speed), (position.y + offset) * (noiseScale / speed))
+                * errorStrength * deltaTime;
 
-        turnAngle += (SimplexNoise.noise(position.x * noiseScale, position.y * noiseScale)) * 1 * errorStrength * deltaTime;
+        Vector2D newVelocity = velocity.rotate(turnAngle);
 
-        // Rotate the velocity vector by turnAngle
-        newVelocity = new Vector2f(
-                (float) (Math.cos(turnAngle) * newVelocity.x - Math.sin(turnAngle) * newVelocity.y),
-                (float) (Math.sin(turnAngle) * newVelocity.x + Math.cos(turnAngle) * newVelocity.y));
-
-        // Save new Velocity
-        velocity = newVelocity;
-
-        newVelocity = new Vector2f(newVelocity);
-
-        // Apply time scaling to calculated velocity and apply it
-        newVelocity.scale(deltaTime, velocity);
-        newPosition.add(newVelocity);
-
-        // Save new position
-        setPosition(newPosition);
+        setVelocity(newVelocity);
+        setPosition(position.add(newVelocity.scale(deltaTime)));
 
         if (shouldExplode() && !isDestroyed) {
-            world.destroy(this);
+            this.setWillBeDestroyed(true);
         }
     }
 
@@ -157,7 +114,7 @@ public class Rocket extends DynamicEntity {
      * @return true if the rocket has reached the target position or after it has missed. False if it has not yet done so.
      */
     protected boolean shouldExplode() {
-        Vector2f difference = new Vector2f(targetPosition.x - position.x, targetPosition.y - position.y);
+        Vector2D difference = targetPosition.sub(position);
         return difference.length() < 10;
     }
 }

@@ -2,9 +2,9 @@ package main.java.model;
 
 import main.java.model.world.Entity;
 
-import javax.vecmath.Vector2f;
 import java.beans.PropertyChangeListener;
 import java.util.List;
+import java.util.Timer;
 
 public interface WorldModel {
 
@@ -12,6 +12,16 @@ public interface WorldModel {
      * @return A list of all entities in the world.
      */
     List<Entity> getEntities();
+
+    /**
+     * @return A timer for scheduling stuff
+     */
+    Timer getTimer();
+
+
+    public void reportUpdateIntervalNs(long intervalNs);
+
+    public long getUpdateInterval();
 
     /**
      * Spawn an entity into the world.
@@ -30,29 +40,26 @@ public interface WorldModel {
     /**
      * @return The width of the world.
      */
-    float getWidth();
+    double getWidth();
 
     /**
      * @return The height of the world.
      */
-    float getHeight();
+    double getHeight();
 
     /**
      * @return The current internal timestamp.
      */
-    float getCurrentTime();
+    double getCurrentTime();
 
     /**
      * @return The speed the simulation runs at. A value of 1.0 represents real-time.
      */
-    float getSimulationSpeed();
+    double getSimulationSpeed();
 
-    /**
-     * The speed the simulation runs at. A value of 1.0 represents real-time.
-     *
-     * @param simulationSpeed The new value.
-     */
-    void setSimulationSpeed(float simulationSpeed);
+    double getWantedSimulationSpeed();
+
+    void setWantedSimulationSpeed(double wantedSimulationSpeed);
 
     void addPropertyChangeListener(PropertyChangeListener l);
 
@@ -62,7 +69,7 @@ public interface WorldModel {
 
     Entity getEntityById(int id);
 
-    public List<Entity> getEntitiesByPosition(Vector2f position, float radius);
+    public List<Entity> getEntitiesByPosition(Vector2D position, double radius);
 
     <T> List<T> getEntitiesByType(Class<T> clazz);
 }
