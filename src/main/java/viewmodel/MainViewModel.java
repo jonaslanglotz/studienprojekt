@@ -21,6 +21,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public class MainViewModel {
+    @Getter
     WorldModel worldModel;
 
     private ListProperty<Entity> entities;

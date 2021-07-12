@@ -75,15 +75,15 @@ public class MainViewController {
 
         entityView.getEntity().bindBidirectional(mainViewModel.getSelectedEntity());
 
-        mapView.getEntities().bind(mainViewModel.getEntities());
+        mapView.getWorldModel().setValue(mainViewModel.getWorldModel());
         mapView.getCenterWorldX().bind(mainViewModel.getCenterWorldX());
         mapView.getCenterWorldY().bind(mainViewModel.getCenterWorldY());
         mapView.getZoom().bind(mainViewModel.getZoom());
         mapView.getWorldWidth().bind(mainViewModel.getWorldWidth());
         mapView.getWorldHeight().bind(mainViewModel.getWorldHeight());
 
-        mapView.widthProperty().bind(stackPane.widthProperty());
-        mapView.heightProperty().bind(stackPane.heightProperty());
+        mapView.prefWidthProperty().bind(stackPane.widthProperty());
+        mapView.prefHeightProperty().bind(stackPane.heightProperty());
 
         attackerSpeedSlider.valueProperty().bindBidirectional(mainViewModel.getAttackerSpeed());
         attackerErrorStrengthSlider.valueProperty().bindBidirectional(mainViewModel.getAttackerErrorStrength());
