@@ -115,6 +115,6 @@ public class Rocket extends DynamicEntity {
      */
     protected boolean shouldExplode() {
         Vector2D difference = targetPosition.sub(position);
-        return difference.length() < 10;
+        return difference.length() < 5;
     }
 }

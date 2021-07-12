@@ -45,12 +45,11 @@ public class SimpleInterceptorRocket extends Rocket {
      */
     @Override
     protected void update(double deltaTime) {
-
         if (targetRocket.isWillBeDestroyed()) {
             targetRocket = null;
             List<Rocket> rockets = world.getEntitiesByType(Rocket.class);
             for (Rocket rocket : rockets) {
-                if (rocket.getSide() != side) {
+                if (rocket.getSide() != side && !rocket.isDestroyed()) {
                     this.targetRocket = rocket;
                     targetPosition = targetRocket.getPosition();
                 }
@@ -77,7 +76,7 @@ public class SimpleInterceptorRocket extends Rocket {
      */
     @Override
     protected boolean shouldExplode() {
-        if (targetRocket == null || targetRocket.isDestroyed()) {
+        if (targetRocket == null) {
             return true;
         }
         Vector2D difference = targetRocket.getPosition().sub(position);

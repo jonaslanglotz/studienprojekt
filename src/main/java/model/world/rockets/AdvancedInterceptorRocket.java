@@ -41,11 +41,11 @@ public class AdvancedInterceptorRocket extends Rocket {
      */
     @Override
     protected void update(double deltaTime) {
-        if (targetRocket == null || targetRocket.isDestroyed()) {
+        if (targetRocket.isWillBeDestroyed()) {
             targetRocket = null;
             List<Rocket> rockets = world.getEntitiesByType(Rocket.class);
             for (Rocket rocket : rockets) {
-                if (rocket.getSide() != side) {
+                if (rocket.getSide() != side && !rocket.isDestroyed()) {
                     Vector2D intersection = Util.calculateIntersectionCoordinates(rocket.getPosition(), rocket.getVelocity(), position, velocity.length());
                     if (intersection != null) {
                         targetPosition = intersection;
@@ -80,7 +80,7 @@ public class AdvancedInterceptorRocket extends Rocket {
      */
     @Override
     protected boolean shouldExplode() {
-        if (targetRocket == null || targetRocket.isDestroyed()) {
+        if (targetRocket == null) {
             return true;
         }
 
