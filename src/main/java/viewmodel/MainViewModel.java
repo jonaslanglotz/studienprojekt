@@ -84,6 +84,11 @@ public class MainViewModel {
     @Getter
     private BooleanProperty entityLock;
 
+    @Getter
+    private final DoubleProperty requestedSimulationSpeed = new SimpleDoubleProperty(1);
+
+    @Getter
+    private final DoubleProperty actualSimulationSpeed = new SimpleDoubleProperty(requestedSimulationSpeed.get());
 
     public MainViewModel(WorldModel worldModel) {
         this.worldModel = worldModel;
@@ -91,6 +96,7 @@ public class MainViewModel {
         entities = new SimpleListProperty<>(
                 FXCollections.observableArrayList(this.worldModel.getEntities()));
 
+        requestedSimulationSpeed.addListener((observableValue, number, t1) -> worldModel.setWantedSimulationSpeed(t1.doubleValue()));
 
         centerWorldX = new SimpleDoubleProperty(worldModel.getWidth() / 2);
         centerWorldY = new SimpleDoubleProperty(worldModel.getHeight() / 2);
@@ -165,6 +171,12 @@ public class MainViewModel {
                         }
                     });
                 }, 60);
+                break;
+
+            case "simulationSpeed":
+                Platform.runLater(() -> {
+                    actualSimulationSpeed.set((Double) evt.getNewValue());
+                });
                 break;
 
             default:

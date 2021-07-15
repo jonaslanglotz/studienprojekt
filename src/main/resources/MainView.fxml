@@ -38,13 +38,26 @@
                     <center>
                         <VBox minWidth="0" minHeight="0">
                             <children>
-                                <StackPane VBox.vgrow="ALWAYS" minWidth="0" minHeight="0"
+                                <StackPane VBox.vgrow="SOMETIMES" minWidth="0" minHeight="0"
                                            fx:id="stackPane">
                                     <MapView fx:id="mapView" onMouseDragged="#onMapViewDragged"
                                              onMousePressed="#onMapViewPressed"
                                              onScroll="#onMapViewScroll"
                                              onMouseClicked="#onMapViewClicked"
                                     />
+                                    <HBox alignment="TOP_RIGHT" pickOnBounds="false">
+                                        <VBox fx:id="simulationSpeedBox" pickOnBounds="false">
+                                            <Label fx:id="simulationSpeedSliderLabel">
+                                                Simulations-Geschwindigkeit
+                                            </Label>
+                                            <Slider fx:id="simulationSpeedSlider" min="0" max="5"
+                                                    showTickLabels="true"
+                                                    showTickMarks="true" majorTickUnit="1"/>
+                                            <Label fx:id="simulationSpeedWarning">
+                                                ⚠ Die Simulationsgeschwindigkeit ist eingeschränkt.
+                                            </Label>
+                                        </VBox>
+                                    </HBox>
                                 </StackPane>
                                 <EntityView fx:id="entityView" VBox.vgrow="ALWAYS" minWidth="0"
                                             minHeight="0"

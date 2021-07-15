@@ -5,3 +5,11 @@
 #stackPane {
     -fx-background-color: rgb(50, 50, 50);
 }
+
+#simulationSpeedSliderLabel {
+    -fx-text-fill: white;
+}
+
+#simulationSpeedWarning {
+    -fx-text-fill: white;
+}

@@ -65,7 +65,7 @@ public class MapView extends StackPane {
     }
 
     private void init() {
-        worldModel = new SimpleObjectProperty<WorldModel>();
+        worldModel = new SimpleObjectProperty<>();
         centerWorldX = new SimpleDoubleProperty(0);
         centerWorldX.addListener(observable -> backgroundMustRerender = true);
         centerWorldY = new SimpleDoubleProperty(0);
@@ -92,12 +92,13 @@ public class MapView extends StackPane {
         this.getChildren().add(lightCanvas);
         this.getChildren().add(foregroundCanvas);
 
-        backgroundCanvas.widthProperty().bind(widthProperty());
-        backgroundCanvas.heightProperty().bind(heightProperty());
-        lightCanvas.widthProperty().bind(widthProperty());
-        lightCanvas.heightProperty().bind(heightProperty());
-        foregroundCanvas.widthProperty().bind(widthProperty());
-        foregroundCanvas.heightProperty().bind(heightProperty());
+
+        backgroundCanvas.widthProperty().bind(maxWidthProperty());
+        backgroundCanvas.heightProperty().bind(maxHeightProperty());
+        lightCanvas.widthProperty().bind(maxWidthProperty());
+        lightCanvas.heightProperty().bind(maxHeightProperty());
+        foregroundCanvas.widthProperty().bind(maxWidthProperty());
+        foregroundCanvas.heightProperty().bind(maxHeightProperty());
 
         backgroundImage = new Image("map_2.jpg");
 
@@ -470,6 +471,7 @@ public class MapView extends StackPane {
             lastFrameTime = now - lastFrame;
             smoothedFrameTime = (smoothedFrameTime * smoothing) + ((lastFrameTime) * (1.0 - smoothing));
             lastFrame = now;
+
             render();
         }
     };

@@ -3,10 +3,7 @@ package main.java.view.main;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.ComboBox;
-import javafx.scene.control.Slider;
-import javafx.scene.control.ToggleButton;
+import javafx.scene.control.*;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
@@ -68,6 +65,12 @@ public class MainViewController {
     @FXML
     Button attackerSpawnButton;
 
+    @FXML
+    Slider simulationSpeedSlider;
+
+    @FXML
+    Label simulationSpeedWarning;
+
     Vector2D lastMouseCoordinates;
 
     public void init(MainViewModel mainViewModel) {
@@ -82,8 +85,11 @@ public class MainViewController {
         mapView.getWorldWidth().bind(mainViewModel.getWorldWidth());
         mapView.getWorldHeight().bind(mainViewModel.getWorldHeight());
 
-        mapView.prefWidthProperty().bind(stackPane.widthProperty());
-        mapView.prefHeightProperty().bind(stackPane.heightProperty());
+        mapView.maxWidthProperty().bind(stackPane.widthProperty());
+        mapView.maxHeightProperty().bind(stackPane.heightProperty());
+
+        simulationSpeedSlider.valueProperty().bindBidirectional(mainViewModel.getRequestedSimulationSpeed());
+        simulationSpeedWarning.visibleProperty().bind(mainViewModel.getRequestedSimulationSpeed().greaterThan(mainViewModel.getActualSimulationSpeed()));
 
         attackerSpeedSlider.valueProperty().bindBidirectional(mainViewModel.getAttackerSpeed());
         attackerErrorStrengthSlider.valueProperty().bindBidirectional(mainViewModel.getAttackerErrorStrength());

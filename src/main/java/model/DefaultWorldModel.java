@@ -158,19 +158,28 @@ public class DefaultWorldModel implements WorldModel, PropertyChangeListener {
      */
     @Override
     public void setWantedSimulationSpeed(double wantedSimulationSpeed) {
+        final double previousSimulationSpeed = getSimulationSpeed();
+
         final double oldValue = this.wantedSimulationSpeed;
         updateCurrentTime();
         this.wantedSimulationSpeed = wantedSimulationSpeed;
         changes.firePropertyChange("wantedSimulationSpeed", oldValue, wantedSimulationSpeed);
+
+        changes.firePropertyChange("simulationSpeed", previousSimulationSpeed, getSimulationSpeed());
     }
 
     /**
      * @param maxSafeSimulationSpeed The new value.
      */
     private void setMaxSafeSimulationSpeed(double maxSafeSimulationSpeed) {
+        final double previousSimulationSpeed = getSimulationSpeed();
+
+        final double oldValue = this.maxSafeSimulationSpeed;
         updateCurrentTime();
         this.maxSafeSimulationSpeed = maxSafeSimulationSpeed;
-        //System.out.println(String.format("max: %.2f; usage: %.2f; sim: %.2f; smo: %.2f; up: %d", maxSafeSimulationSpeed, resourceUsage, getSimulationSpeed(), smoothedUpdateIntervalMs, getUpdateInterval()));
+        changes.firePropertyChange("maxSafeSimulationSpeed", oldValue, maxSafeSimulationSpeed);
+       
+        changes.firePropertyChange("simulationSpeed", previousSimulationSpeed, getSimulationSpeed());
     }
 
     @Override
