@@ -1,15 +1,20 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Text?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <fx:root xmlns="http://javafx.com/javafx"
          xmlns:fx="http://javafx.com/fxml"
          type="javafx.scene.layout.VBox">
     <StackPane  minHeight="0" minWidth="0" fx:id="overlayStackPane">
         <VBox minHeight="0" minWidth="0" fx:id="mainContainer" visible="false">
             <Text fx:id="header">test</Text>
-            <Button fx:id="button">test</Button>
+            <ToggleButton fx:id="lockViewToggle">
+                <graphic>
+                    <FontIcon iconLiteral="fas-lock"/>
+                </graphic>
+            </ToggleButton>
         </VBox>
         <BorderPane minHeight="0" minWidth="0" fx:id="placeholderPane">
             <center>

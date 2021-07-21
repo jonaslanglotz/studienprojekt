@@ -1,10 +1,13 @@
 package main.java.view.main;
 
 import javafx.application.Platform;
+import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -20,6 +23,9 @@ public class EntityView extends VBox {
     @Getter
     ObjectProperty<Entity> entity = new SimpleObjectProperty<>();
 
+    @Getter
+    BooleanProperty isViewLocked = new SimpleBooleanProperty();
+
     @FXML
     Text header;
 
@@ -32,8 +38,11 @@ public class EntityView extends VBox {
     @FXML
     BorderPane placeholderPane;
 
+    @FXML
+    ToggleButton lockViewToggle;
+
     PropertyChangeListener listener = evt -> Util.batch(String.valueOf(this.hashCode()), () -> Platform.runLater(this::update), 60);
-;
+    ;
 
 
     public EntityView() {
@@ -64,6 +73,7 @@ public class EntityView extends VBox {
             Util.batch(String.valueOf(this.hashCode()), () -> Platform.runLater(this::update), 60);
         });
 
+        isViewLocked.bindBidirectional(lockViewToggle.selectedProperty());
 
     }
 

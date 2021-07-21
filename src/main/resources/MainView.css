@@ -10,6 +10,6 @@
     -fx-text-fill: white;
 }
 
-#simulationSpeedWarning {
+#simulationSpeedWarning, #simulationSpeedWarning * {
     -fx-text-fill: white;
 }

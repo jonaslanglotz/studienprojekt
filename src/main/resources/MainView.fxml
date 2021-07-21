@@ -2,6 +2,7 @@
 <?import javafx.scene.layout.*?>
 <?import main.java.view.main.EntityView?>
 <?import main.java.view.main.MapView?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 <AnchorPane maxHeight="600.0" maxWidth="600.0" minHeight="600.0" minWidth="600.0" prefHeight="600.0"
             prefWidth="600.0" fx:controller="main.java.view.main.MainViewController"
             xmlns:fx="http://javafx.com/fxml"
@@ -53,9 +54,14 @@
                                             <Slider fx:id="simulationSpeedSlider" min="0" max="5"
                                                     showTickLabels="true"
                                                     showTickMarks="true" majorTickUnit="1"/>
-                                            <Label fx:id="simulationSpeedWarning">
-                                                ⚠ Die Simulationsgeschwindigkeit ist eingeschränkt.
-                                            </Label>
+                                            <HBox fx:id="simulationSpeedWarning">
+                                                <FontIcon iconLiteral="fas-exclamation-triangle"
+                                                          iconColor="white"/>
+                                                <Label>
+                                                    &#160;Die Simulationsgeschwindigkeit ist
+                                                    eingeschränkt.
+                                                </Label>
+                                            </HBox>
                                         </VBox>
                                     </HBox>
                                 </StackPane>

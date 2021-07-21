@@ -3,10 +3,14 @@ package main.java.view.main;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
+import javafx.scene.control.Slider;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import main.java.model.Vector2D;
 import main.java.model.world.Util;
@@ -69,7 +73,7 @@ public class MainViewController {
     Slider simulationSpeedSlider;
 
     @FXML
-    Label simulationSpeedWarning;
+    HBox simulationSpeedWarning;
 
     Vector2D lastMouseCoordinates;
 
@@ -77,6 +81,7 @@ public class MainViewController {
         this.mainViewModel = mainViewModel;
 
         entityView.getEntity().bindBidirectional(mainViewModel.getSelectedEntity());
+        entityView.isViewLocked.bindBidirectional(mainViewModel.getEntityLock());
 
         mapView.getWorldModel().setValue(mainViewModel.getWorldModel());
         mapView.getCenterWorldX().bind(mainViewModel.getCenterWorldX());
