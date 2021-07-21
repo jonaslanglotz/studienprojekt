@@ -41,7 +41,7 @@ public class AdvancedInterceptorRocket extends Rocket {
      */
     @Override
     protected void update(double deltaTime) {
-        if (targetRocket.isWillBeDestroyed()) {
+        if (targetRocket == null || targetRocket.isWillBeDestroyed()) {
             targetRocket = null;
             List<Rocket> rockets = world.getEntitiesByType(Rocket.class);
             for (Rocket rocket : rockets) {
@@ -81,7 +81,7 @@ public class AdvancedInterceptorRocket extends Rocket {
     @Override
     protected boolean shouldExplode() {
         if (targetRocket == null) {
-            return true;
+            return Math.random() < (world.getUpdateInterval() + 1) * 0.001;
         }
 
         Vector2D difference = targetPosition.sub(position);
