@@ -161,22 +161,24 @@ public class MainViewModel {
     public void updateValues(PropertyChangeEvent evt) {
         switch (evt.getPropertyName()) {
             case "entities":
-                Util.batch(String.valueOf(this.hashCode()), () -> {
-                    Platform.runLater(() -> {
-                        entities.setAll(worldModel.getEntities());
+                Util.batch(this.hashCode() + "entities", () -> Platform.runLater(() -> {
+                    entities.setAll(worldModel.getEntities());
 
-                        if (selectedEntity.get() != null && !selectedEntity.get().isWillBeDestroyed() && entityLock.get()) {
-                            centerWorldX.set(selectedEntity.get().getPosition().x);
-                            centerWorldY.set(selectedEntity.get().getPosition().y);
-                        }
-                    });
-                }, 60);
+                    if (selectedEntity.get() != null && selectedEntity.get().isWillBeDestroyed()) {
+                        selectedEntity.set(null);
+                    }
+
+                    if (selectedEntity.get() != null && !selectedEntity.get().isWillBeDestroyed() && entityLock.get()) {
+                        centerWorldX.set(selectedEntity.get().getPosition().x);
+                        centerWorldY.set(selectedEntity.get().getPosition().y);
+                    }
+                }), 60);
                 break;
 
             case "simulationSpeed":
-                Platform.runLater(() -> {
+                Util.batch(this.hashCode() + "simulationSpeed", () -> Platform.runLater(() -> {
                     actualSimulationSpeed.set((Double) evt.getNewValue());
-                });
+                }), 60);
                 break;
 
             default:
