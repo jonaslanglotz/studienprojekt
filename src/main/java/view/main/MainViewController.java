@@ -13,6 +13,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import main.java.model.Vector2D;
+import main.java.model.world.Entity;
 import main.java.model.world.Util;
 import main.java.viewmodel.MainViewModel;
 
@@ -82,6 +83,12 @@ public class MainViewController {
 
         entityView.getEntity().bindBidirectional(mainViewModel.getSelectedEntity());
         entityView.isViewLocked.bindBidirectional(mainViewModel.getEntityLock());
+        entityView.addEventHandler(EntityLinkClickedEvent.CUSTOM_EVENT_TYPE, new CustomEventHandler() {
+            @Override
+            public void onEntityLinkClickedEvent(Entity entity) {
+                mainViewModel.selectEntity(entity);
+            }
+        });
 
         mapView.getWorldModel().setValue(mainViewModel.getWorldModel());
         mapView.getCenterWorldX().bind(mainViewModel.getCenterWorldX());

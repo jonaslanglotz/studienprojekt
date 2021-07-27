@@ -117,4 +117,9 @@ public class Rocket extends DynamicEntity {
         Vector2D difference = targetPosition.sub(position);
         return difference.length() < 5;
     }
+
+    public double estimatedTimeToTarget() {
+        Vector2D difference = targetPosition.sub(position);
+        return difference.length() / velocity.length();
+    }
 }

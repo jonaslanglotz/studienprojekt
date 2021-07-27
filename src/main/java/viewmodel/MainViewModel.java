@@ -164,9 +164,9 @@ public class MainViewModel {
                 Util.batch(this.hashCode() + "entities", () -> Platform.runLater(() -> {
                     entities.setAll(worldModel.getEntities());
 
-                    if (selectedEntity.get() != null && selectedEntity.get().isWillBeDestroyed()) {
-                        selectedEntity.set(null);
-                    }
+                    // if (selectedEntity.get() != null && selectedEntity.get().isWillBeDestroyed()) {
+                    //     selectedEntity.set(null);
+                    // }
 
                     if (selectedEntity.get() != null && !selectedEntity.get().isWillBeDestroyed() && entityLock.get()) {
                         centerWorldX.set(selectedEntity.get().getPosition().x);
@@ -231,7 +231,11 @@ public class MainViewModel {
     }
 
     public void selectEntityAtCoordinates(Vector2D position, double radius) {
-        selectedEntity.set(worldModel.getEntitiesByPosition(position, radius).stream().findFirst().orElse(null));
+        selectEntity(worldModel.getEntitiesByPosition(position, radius).stream().findFirst().orElse(null));
+    }
+
+    public void selectEntity(Entity entity) {
+        selectedEntity.set(entity);
         entityLock.set(true);
     }
 }

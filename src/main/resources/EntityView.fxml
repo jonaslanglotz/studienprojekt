@@ -1,20 +1,47 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.*?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 <fx:root xmlns="http://javafx.com/javafx"
          xmlns:fx="http://javafx.com/fxml"
          type="javafx.scene.layout.VBox">
     <StackPane  minHeight="0" minWidth="0" fx:id="overlayStackPane">
         <VBox minHeight="0" minWidth="0" fx:id="mainContainer" visible="false">
-            <Text fx:id="header">test</Text>
-            <ToggleButton fx:id="lockViewToggle">
-                <graphic>
-                    <FontIcon iconLiteral="fas-lock"/>
-                </graphic>
-            </ToggleButton>
+            <HBox>
+                <ToggleButton fx:id="lockViewToggle">
+                    <graphic>
+                        <FontIcon iconLiteral="fas-lock"/>
+                    </graphic>
+                </ToggleButton>
+                <Text fx:id="header"/>
+            </HBox>
+            <HBox styleClass="entityViewProperty">
+                <Text styleClass="entityViewLabel">Startposition: &#160;</Text>
+                <Text fx:id="startPosition"/>
+            </HBox>
+            <HBox styleClass="entityViewProperty">
+                <Text styleClass="entityViewLabel">Startzeit:&#160;</Text>
+                <Text fx:id="startTime"/>
+            </HBox>
+            <HBox styleClass="entityViewProperty">
+                <Text styleClass="entityViewLabel">Zielobjekt:&#160;</Text>
+                <Hyperlink fx:id="target"/>
+            </HBox>
+            <HBox styleClass="entityViewProperty">
+                <Text styleClass="entityViewLabel">Zielkoordinaten:&#160;</Text>
+                <Text fx:id="targetCoordinates"/>
+            </HBox>
+            <HBox styleClass="entityViewProperty">
+                <Text styleClass="entityViewLabel">Status:&#160;</Text>
+                <Text fx:id="status"/>
+            </HBox>
+            <HBox styleClass="entityViewProperty">
+                <Text styleClass="entityViewLabel">Geschätzte Ankunftszeit:&#160;</Text>
+                <Text fx:id="estimate"/>
+            </HBox>
         </VBox>
         <BorderPane minHeight="0" minWidth="0" fx:id="placeholderPane">
             <center>

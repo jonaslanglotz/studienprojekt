@@ -60,8 +60,13 @@ public class Vector2D {
         return new Vector2D(-1, 0);
     }
 
+    public String toString() {
+        return String.format("( x: %.2f, y: %.2f )", x, y);
+    }
+
     /**
      * Calculates the result of the addition of this vector with another.
+     *
      * @param b The vector to add.
      * @return The result of the addition as a new Vector2D.
      */

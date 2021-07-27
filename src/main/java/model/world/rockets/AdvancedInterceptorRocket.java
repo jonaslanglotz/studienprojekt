@@ -1,5 +1,6 @@
 package main.java.model.world.rockets;
 
+import lombok.Getter;
 import lombok.NonNull;
 import main.java.model.Vector2D;
 import main.java.model.WorldModel;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 
 public class AdvancedInterceptorRocket extends Rocket {
 
+    @Getter
     private Rocket targetRocket;
 
     /**
@@ -50,13 +52,16 @@ public class AdvancedInterceptorRocket extends Rocket {
                     if (intersection != null) {
                         targetPosition = intersection;
                         this.targetRocket = rocket;
+                    } else {
+                        targetPosition = rocket.getPosition();
+                        this.targetRocket = rocket;
                     }
                 }
             }
         } else {
             Vector2D intersection = Util.calculateIntersectionCoordinates(targetRocket.getPosition(), targetRocket.getVelocity(), position, velocity.length());
             if (intersection == null) {
-                targetRocket = null;
+                targetPosition = targetRocket.getPosition();
             } else {
                 targetPosition = intersection;
             }
@@ -65,7 +70,7 @@ public class AdvancedInterceptorRocket extends Rocket {
         super.update(deltaTime);
 
         if (shouldExplode()) {
-            List<Entity> entities = world.getEntitiesByPosition(position, 10).stream().filter(entity -> entity instanceof Rocket).collect(Collectors.toList());
+            List<Entity> entities = world.getEntitiesByPosition(position, 20).stream().filter(entity -> entity instanceof Rocket).collect(Collectors.toList());
             for (Entity entity : entities) {
                 if (entity.getSide() != side) {
                     entity.setWillBeDestroyed(true);

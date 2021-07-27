@@ -55,6 +55,6 @@ public class FlakRocket extends Rocket {
         }
 
         lastDistance = distance;
-        return distance < 2;
+        return distance < 3;
     }
 }

@@ -13,3 +13,17 @@
 #simulationSpeedWarning, #simulationSpeedWarning * {
     -fx-text-fill: white;
 }
+
+.entityViewProperty {
+}
+
+.entityViewLabel {
+}
+
+#header {
+    -fx-font-size: 20px;
+}
+
+#mainContainer {
+    -fx-padding: 10px;
+}
